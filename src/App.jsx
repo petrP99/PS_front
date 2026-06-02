@@ -6,6 +6,8 @@ import HomePage from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
 import LogoutPage from './pages/LogoutPage';
+import MyCardsPage from './pages/MyCardsPage';
+import CardDetailsPage from './pages/CardDetailsPage';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
                 <Route path="/" element={<Navigate to="/home" replace />} />
                 <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+                <Route path="/cards" element={<ProtectedRoute><MyCardsPage /></ProtectedRoute>} />
+                <Route path="/cards/:id" element={<ProtectedRoute><CardDetailsPage /></ProtectedRoute>} />
               </Routes>
             </Layout>
           } />

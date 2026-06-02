@@ -1,42 +1,54 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import { getProfile } from '../api';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const userData = await getProfile();
-        setUser(userData);
-      } catch (err) {
-        // Если это 401, то getProfile уже сделал редирект на Keycloak
-        if (err.message === 'Unauthorized') {
-          return;
+    // Прямой fetch, без CSRF-токена — это просто проверка сессии
+    fetch('/api/v1/client/profile', { 
+      credentials: 'include',
+      headers: {}
+    })
+      .then(async res => {
+        console.log('[Auth] статус:', res.status);
+        console.log('[Auth] куки:', document.cookie);
+        if (res.status === 401) {
+          setUser(null);
+          setLoading(false);
+          return null;
         }
-        setError(err.message || 'Не удалось подключиться к серверу');
-      } finally {
+        const data = await res.json();
+        console.log('[Auth] данные:', data);
+        return data;
+      })
+      .then(data => {
+        if (data) {
+          setUser(data);
+        }
         setLoading(false);
-      }
-    };
-    checkAuth();
+      })
+      .catch(err => {
+        console.error('[Auth] ошибка:', err);
+        setUser(null);
+        setLoading(false);
+      });
   }, []);
+
+  const login = () => {
+    window.location.href = 'http://localhost:9090/oauth2/authorization/keycloak';
+  };
 
   const logout = () => {
     window.location.href = 'http://localhost:9090/logout';
   };
 
   return (
-      // Добавлено: передаем loading и error в контекст, чтобы HomePage их видел
-      <AuthContext.Provider value={{ user, loading, error, logout, setUser }}>
-        {children}
-      </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
+      {children}
+    </AuthContext.Provider>
   );
 }
 
