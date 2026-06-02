@@ -1,29 +1,18 @@
 const API_BASE = '/api/v1';
-const CSRF_HEADER = 'X-XSRF-TOKEN';
 
-// Получение CSRF-токена из cookie
-const getCsrfToken = () => {
-  const cookies = document.cookie.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'XSRF-TOKEN') {
-      return decodeURIComponent(value);
-    }
-  }
-  return null;
-};
 
-export const apiFetch = async (endpoint, options = {}, isRetry = false) => {
-  const csrfToken = getCsrfToken();
+// Функция для получения значения куки по имени
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+export const apiFetch = async (endpoint, options = {}) => {
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
-  
-  // Добавляем CSRF-токен только для изменяющих запросов
-  if (csrfToken && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method?.toUpperCase())) {
-    headers[CSRF_HEADER] = csrfToken;
-  }
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
@@ -31,19 +20,16 @@ export const apiFetch = async (endpoint, options = {}, isRetry = false) => {
     headers: headers,
   });
 
-  if (response.status === 401) {
-    // Не делаем редирект здесь — это должно обрабатываться на уровне компонентов
-    throw new Error('Unauthorized');
+  // Если метод не GET, добавляем CSRF-токен
+  if (options.method && options.method !== 'GET') {
+    const csrfToken = getCookie('XSRF-TOKEN');
+    if (csrfToken) {
+      headers['X-XSRF-TOKEN'] = csrfToken;
+    }
   }
 
-  if (response.status === 403 && !isRetry) {
-    // Попробуем получить новый CSRF-токен (только один раз)
-    await fetch(`${API_BASE}/csrf`, { credentials: 'include' });
-    return apiFetch(endpoint, options, true);
-  }
-  
-  if (response.status === 403) {
-    throw new Error('Доступ запрещён. Пожалуйста, обновите страницу.');
+  if (response.status === 401) {
+    throw new Error('Unauthorized');
   }
 
   if (!response.ok) {
@@ -62,19 +48,19 @@ export const apiFetch = async (endpoint, options = {}, isRetry = false) => {
 export const getProfile = () => apiFetch('/client/profile');
 
 // Карты
-export const createCard = (name, currency = 'RUB') => 
+export const createCard = (name, currency = 'RUB') =>
   apiFetch('/cards/create', {
     method: 'POST',
     body: JSON.stringify({ name, currency })
   });
 
-export const getCardById = (id) => 
+export const getCardById = (id) =>
   apiFetch(`/cards/${id}`);
 
-export const blockCard = (id) => 
+export const blockCard = (id) =>
   apiFetch(`/cards/${id}/block`, {
-    method: 'PUT'
+    method: 'GET'
   });
 
-export const getMyCards = () => 
+export const getMyCards = () =>
   apiFetch('/cards/my');
