@@ -1,0 +1,31 @@
+POST /api/v1/replenishments
+GET /api/v1/replenishments/my
+GET /api/v1/replenishments/cards
+GET /api/v1/replenishments/cards/{cardId}
+GET /api/v1/replenishments/findAll
+
+POST /api/v1/payments/create
+GET /api/v1/payments/my
+GET /api/v1/payments/getCards
+GET /api/v1/payments
+
+POST /api/v1/cards/create
+PUT /api/v1/cards/{id}/block
+GET /api/v1/cards/my
+GET /api/v1/cards/{id}
+DELETE /api/v1/cards/{id}
+GET /api/v1/cards/findAll
+
+GET /api/v1/transfers/cards
+POST /api/v1/transfers/preview
+POST /api/v1/transfers/preview-phone
+POST /api/v1/transfers/create
+GET /api/v1/transfers/my
+GET /api/v1/transfers/findAll
+
+PUT /api/v1/client/update
+GET /api/v1/client/profile
+GET /api/v1/client/myBalance
+PUT /api/v1/client/{id}/admin
+DELETE /api/v1/client/{id}
+GET /api/v1/client/findAll
