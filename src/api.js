@@ -48,10 +48,10 @@ export const apiFetch = async (endpoint, options = {}) => {
 export const getProfile = () => apiFetch('/client/profile');
 
 // Карты
-export const createCard = (name, currency = 'RUB') =>
+export const createCard = ({ name, currency, isPremium, accountId }) =>
   apiFetch('/cards/create', {
     method: 'POST',
-    body: JSON.stringify({ name, currency })
+    body: JSON.stringify({ name, currency, isPremium, accountId })
   });
 
 export const getCardById = (id) =>
@@ -59,8 +59,34 @@ export const getCardById = (id) =>
 
 export const blockCard = (id) =>
   apiFetch(`/cards/${id}/block`, {
-    method: 'GET'
+    method: 'POST'
   });
 
 export const getMyCards = () =>
   apiFetch('/cards/my');
+
+// Пополнение
+export const getReplenishments = () =>
+  apiFetch('/replenishments/my');
+
+export const getReplenishmentsByCard = (cardId) =>
+  apiFetch(`/replenishments/cards/${cardId}`);
+
+export const replenishCard = (cardId, amount, clientId) =>
+  apiFetch(`/replenishments/cards/${cardId}`, {
+    method: 'POST',
+    body: JSON.stringify({ amount, clientId, cardId })
+  });
+
+// Счета
+export const getMyAccounts = () =>
+  apiFetch('/account/my');
+
+export const getAccountById = (id) =>
+  apiFetch(`/account/get/${id}`);
+
+export const createAccount = (currency, name) =>
+  apiFetch('/account/create', {
+    method: 'POST',
+    body: JSON.stringify({ currency, name })
+  });

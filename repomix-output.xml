@@ -1,0 +1,1210 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+index.html
+package.json
+paths.txt
+src/api.js
+src/App.jsx
+src/components/ConfirmationModal.jsx
+src/components/Layout.jsx
+src/components/LogoutRedirect.jsx
+src/components/ProtectedRoute.jsx
+src/context/AuthContext.jsx
+src/index.css
+src/main.jsx
+src/pages/AdminPage.jsx
+src/pages/CardDetailsPage.jsx
+src/pages/HomePage.jsx
+src/pages/LoginPage.jsx
+src/pages/LogoutPage.jsx
+src/pages/MyCardsPage.jsx
+src/pages/NotFoundPage.jsx
+test.txt
+vite.config.js
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/components/ConfirmationModal.jsx">
+import React from 'react';
+
+export default function ConfirmationModal({ isOpen, title, message, onConfirm, onCancel }) {
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+      animation: 'fadeIn 0.3s ease-out',
+    }}>
+      <div className="glass" style={{
+        padding: '2rem',
+        borderRadius: '16px',
+        maxWidth: '450px',
+        width: '90%',
+        animation: 'scaleIn 0.3s ease-out',
+      }}>
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: '1rem' }}>{title}</h2>
+        <p style={{ marginBottom: '2rem', color: 'rgba(255,255,255,0.7)' }}>{message}</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+          <button 
+            className="glass" 
+            style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer' }}
+            onClick={onCancel}
+          >
+            Отмена
+          </button>
+          <button 
+            className="glass" 
+            style={{ padding: '0.7rem 1.5rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '10px', cursor: 'pointer' }}
+            onClick={onConfirm}
+          >
+            Подтвердить
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/LogoutRedirect.jsx">
+import { useEffect } from 'react';
+
+export default function LogoutRedirect() {
+  useEffect(() => {
+    window.location.href = 'http://localhost:9090/logout';
+  }, []);
+  return null;
+}
+</file>
+
+<file path="src/components/ProtectedRoute.jsx">
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export default function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+  
+  // Пока проверяем авторизацию — не показываем ничего (или спиннер)
+  if (loading) {
+    return null;
+  }
+  
+  // Если неавторизован — редирект на логин
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+</file>
+
+<file path="src/pages/CardDetailsPage.jsx">
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { getCardById, blockCard } from '../api';
+import ConfirmationModal from '../components/ConfirmationModal';
+
+export default function CardDetailsPage() {
+  const { id } = useParams();
+  const [card, setCard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+
+  useEffect(() => {
+    fetchCard();
+  }, [id]);
+
+  const fetchCard = async () => {
+    try {
+      setLoading(true);
+      const cardData = await getCardById(id);
+      setCard(cardData);
+    } catch (error) {
+      console.error('Ошибка при загрузке карты:', error);
+      alert(`Ошибка: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBlockCard = async () => {
+    if (!card) return;
+    
+    try {
+      await blockCard(card.id);
+      alert('Карта успешно заблокирована!');
+      setCard({ ...card, status: 'BLOCKED' });
+    } catch (error) {
+      console.error('Ошибка блокировки карты:', error);
+      alert(`Ошибка: ${error.message}`);
+    } finally {
+      setShowBlockConfirm(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <p>Загрузка информации о карте...</p>
+      </div>
+    );
+  }
+
+  if (!card) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <p>Карта не найдена</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Информация о карте</h1>
+      </div>
+
+      <div className="glass" style={{ padding: '2rem', borderRadius: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+          <div>
+            <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>Номер карты</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 500 }}>
+              XXXX-XXXX-XXXX-{card.id.toString().slice(-4)}
+            </div>
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>Название</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 500 }}>
+              {card.name || 'Нет названия'}
+            </div>
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>Валюта</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 500 }}>
+              {card.currency === 'RUB' ? 'Рубли' : card.currency === 'USD' ? 'Доллары' : 'Юани'} ({card.currency})
+            </div>
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>Баланс</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+              {card.balance.toLocaleString('ru-RU')} {card.currency}
+            </div>
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>Статус</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 500 }}>
+              {card.status === 'ACTIVE' ? (
+                <span style={{ color: '#10b981' }}>Активна</span>
+              ) : (
+                <span style={{ color: '#f472b6' }}>Заблокирована</span>
+              )}
+            </div>
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>Срок действия</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 500 }}>
+              {card.expireDate}
+            </div>
+          </div>
+        </div>
+
+        {card.status === 'ACTIVE' && card.balance === 0 && (
+          <button 
+            className="glass" 
+            style={{ padding: '0.8rem 1.5rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '10px', cursor: 'pointer' }}
+            onClick={() => setShowBlockConfirm(true)}
+          >
+            Заблокировать карту
+          </button>
+        )}
+      </div>
+
+      <ConfirmationModal
+        isOpen={showBlockConfirm}
+        title="Подтверждение блокировки"
+        message={`Вы уверены, что хотите заблокировать карту ${card.id}?`}
+        onConfirm={handleBlockCard}
+        onCancel={() => setShowBlockConfirm(false)}
+      />
+    </div>
+  );
+}
+</file>
+
+<file path="src/pages/LogoutPage.jsx">
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
+export default function LogoutPage() {
+  const navigate = useNavigate();
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: '-20%', right: '10%', width: '450px', height: '450px', background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)', borderRadius: '50%', animation: 'float 7s ease-in-out infinite' }} />
+      <div style={{ position: 'absolute', bottom: '-20%', left: '10%', width: '350px', height: '350px', background: 'radial-gradient(circle, rgba(236,72,153,0.06) 0%, transparent 70%)', borderRadius: '50%', animation: 'float 9s ease-in-out infinite reverse' }} />
+
+      <div className="glass glow-border" style={{ padding: '3rem 2.5rem', textAlign: 'center', maxWidth: '380px', width: '90%', animation: 'fadeInUp 0.6s ease-out' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem', animation: 'float 4s ease-in-out infinite' }}>👋</div>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '0.75rem' }}>Вы вышли</h1>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', marginBottom: '2.5rem', lineHeight: 1.6 }}>
+          Спасибо, что пользуетесь PayFlow.<br />До встречи!
+        </p>
+        <button onClick={() => navigate('/login')} style={{ padding: '1rem 0', width: '100%', background: 'linear-gradient(135deg, #6366f1, #c084fc)', color: '#fff', border: 'none', borderRadius: '14px', cursor: 'pointer', fontWeight: 600, fontSize: '1rem', transition: 'all 0.3s', boxShadow: '0 4px 20px rgba(99,102,241,0.3)' }}
+          onMouseOver={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 30px rgba(99,102,241,0.5)'; }}
+          onMouseOut={e => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 20px rgba(99,102,241,0.3)'; }}>
+          Войти снова
+        </button>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/pages/MyCardsPage.jsx">
+import React, { useState, useEffect } from 'react';
+import { createCard, getMyCards, blockCard } from '../api';
+import ConfirmationModal from '../components/ConfirmationModal';
+
+export default function MyCardsPage() {
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [cardToBlock, setCardToBlock] = useState(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newCardData, setNewCardData] = useState({ name: '', currency: 'RUB' });
+
+  useEffect(() => {
+    fetchCards();
+  }, []);
+
+  const fetchCards = async () => {
+    try {
+      setLoading(true);
+      const cards = await getMyCards();
+      setCards(cards);
+    } catch (error) {
+      console.error('Ошибка при загрузке карт:', error);
+      alert(`Ошибка: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCard = async () => {
+    try {
+      await createCard(newCardData.name || undefined, newCardData.currency);
+      fetchCards();
+      setShowCreateForm(false);
+      setNewCardData({ name: '', currency: 'RUB' });
+      alert('Карта успешно создана!');
+    } catch (error) {
+      console.error('Ошибка создания карты:', error);
+      alert(`Ошибка: ${error.message}`);
+    }
+  };
+
+  const handleBlockCard = async () => {
+    if (!cardToBlock) return;
+    
+    try {
+      await blockCard(cardToBlock.id);
+      fetchCards();
+      alert('Карта успешно заблокирована!');
+    } catch (error) {
+      console.error('Ошибка блокировки карты:', error);
+      alert(`Ошибка: ${error.message}`);
+    } finally {
+      setCardToBlock(null);
+    }
+  };
+
+  // Группируем карты по валюте
+  const cardsByCurrency = {};
+  cards.forEach(card => {
+    if (!cardsByCurrency[card.currency]) {
+      cardsByCurrency[card.currency] = [];
+    }
+    cardsByCurrency[card.currency].push(card);
+  });
+
+  return (
+    <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Мои карты</h1>
+        <button 
+          className="glass" 
+          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer' }}
+          onClick={() => setShowCreateForm(true)}
+        >
+          Создать карту
+        </button>
+      </div>
+
+      {showCreateForm && (
+        <div className="glass" style={{ padding: '1.5rem', marginBottom: '2rem', borderRadius: '16px' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem' }}>Создание новой карты</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Название карты (необязательно)</label>
+              <input
+                type="text"
+                className="glass"
+                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)' }}
+                value={newCardData.name}
+                onChange={e => setNewCardData({ ...newCardData, name: e.target.value })}
+                placeholder="Например, Основная карта"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Валюта</label>
+              <select
+                className="glass"
+                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)' }}
+                value={newCardData.currency}
+                onChange={e => setNewCardData({ ...newCardData, currency: e.target.value })}
+              >
+                <option value="RUB">Рубль (RUB)</option>
+                <option value="USD">Доллар (USD)</option>
+                <option value="CNY">Юань (CNY)</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              className="glass" 
+              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: 'pointer' }}
+              onClick={handleCreateCard}
+            >
+              Создать
+            </button>
+            <button 
+              className="glass" 
+              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer' }}
+              onClick={() => setShowCreateForm(false)}
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p>Загрузка карт...</p>
+        </div>
+      ) : Object.keys(cardsByCurrency).length === 0 ? (
+        <div className="glass" style={{ padding: '2rem', textAlign: 'center', borderRadius: '16px' }}>
+          <p>У вас пока нет карт</p>
+        </div>
+      ) : (
+        Object.entries(cardsByCurrency).map(([currency, currencyCards]) => (
+          <div key={currency} className="glass" style={{ padding: '1.5rem', marginBottom: '2rem', borderRadius: '16px' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem' }}>
+              {currency === 'RUB' ? 'Рубли' : currency === 'USD' ? 'Доллары' : 'Юани'} ({currency})
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+              {currencyCards.map(card => (
+                <div key={card.id} className="glass" style={{ padding: '1.5rem', borderRadius: '14px', position: 'relative' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '0.5rem' }}>
+                    {card.name || `Карта ${card.id.toString().slice(-4)}`}
+                  </div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '1rem' }}>
+                    {card.balance.toLocaleString('ru-RU')} {currency}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
+                    <span>XXXX-XXXX-XXXX-{card.id.toString().slice(-4)}</span>
+                    <span>{card.expireDate}</span>
+                  </div>
+                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      className="glass" 
+                      style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: '8px', cursor: 'pointer', flex: 1 }}
+                      onClick={() => window.location.href = `/cards/${card.id}`}
+                    >
+                      Подробнее
+                    </button>
+                    {card.status === 'ACTIVE' && card.balance === 0 && (
+                      <button 
+                        className="glass" 
+                        style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '8px', cursor: 'pointer' }}
+                        onClick={() => setCardToBlock(card)}
+                      >
+                        Заблокировать
+                      </button>
+                    )}
+                  </div>
+                  {card.status === 'BLOCKED' && (
+                    <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,0,0,0.2)', color: '#f472b6', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                      Заблокирована
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
+
+      <ConfirmationModal
+        isOpen={!!cardToBlock}
+        title="Подтверждение блокировки"
+        message={`Вы уверены, что хотите заблокировать карту ${cardToBlock?.id || ''}?`}
+        onConfirm={handleBlockCard}
+        onCancel={() => setCardToBlock(null)}
+      />
+    </div>
+  );
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "ps_front",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
+    "react-toastify": "^10.0.4"
+  },
+  "devDependencies": {
+    "vite": "^5.1.0"
+  }
+}
+</file>
+
+<file path="paths.txt">
+POST /api/v1/replenishments
+GET /api/v1/replenishments/my
+GET /api/v1/replenishments/cards
+GET /api/v1/replenishments/cards/{cardId}
+GET /api/v1/replenishments/findAll
+
+POST /api/v1/payments/create
+GET /api/v1/payments/my
+GET /api/v1/payments/getCards
+GET /api/v1/payments
+
+POST /api/v1/cards/create
+PUT /api/v1/cards/{id}/block
+GET /api/v1/cards/my
+GET /api/v1/cards/{id}
+DELETE /api/v1/cards/{id}
+GET /api/v1/cards/findAll
+
+GET /api/v1/transfers/cards
+POST /api/v1/transfers/preview
+POST /api/v1/transfers/preview-phone
+POST /api/v1/transfers/create
+GET /api/v1/transfers/my
+GET /api/v1/transfers/findAll
+
+PUT /api/v1/client/update
+GET /api/v1/client/profile
+GET /api/v1/client/myBalance
+PUT /api/v1/client/{id}/admin
+DELETE /api/v1/client/{id}
+GET /api/v1/client/findAll
+</file>
+
+<file path="src/pages/AdminPage.jsx">
+import React from 'react';
+
+export default function AdminPage() {
+  return (
+    <div className="fade-in">
+      <div style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: '20px',
+        padding: '2.5rem',
+        marginBottom: '2rem',
+        color: '#fff',
+        boxShadow: '0 10px 40px rgba(102,126,234,0.3)',
+      }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Admin Panel</h1>
+        <p style={{ opacity: 0.9, marginTop: '0.5rem' }}>This page is accessible only to administrators.</p>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/pages/NotFoundPage.jsx">
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+export default function NotFoundPage() {
+  return (
+    <div>
+      <h1>404 - Not Found</h1>
+      <p>The page you are looking for does not exist.</p>
+      <Link to="/">Go Home</Link>
+    </div>
+  );
+}
+</file>
+
+<file path="test.txt">
+This is a test of write_to_file.
+</file>
+
+<file path="src/components/Layout.jsx">
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
+const navItems = [
+  { to: '/home', icon: '🏠', label: 'Главная' },
+  { to: '/cards', icon: '💳', label: 'Карты' },
+  { to: '/transfers', icon: '⚡', label: 'Переводы' },
+  { to: '/payments', icon: '🧾', label: 'Платежи' },
+  { to: '/history', icon: '📊', label: 'История' },
+  { to: '/admin', icon: '⚙️', label: 'Админ' },
+];
+
+export default function Layout({ children }) {
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [usdRate, setUsdRate] = useState(null);
+
+  useEffect(() => {
+    const fetchRate = async () => {
+      try {
+        const res = await fetch('https://www.cbr-xml-daily.ru/latest.js');
+        const data = await res.json();
+        setUsdRate(data.rates?.USD ? (1 / data.rates.USD).toFixed(2) : (await (await fetch('https://api.exchangerate-api.com/v4/latest/USD')).json()).rates?.RUB?.toFixed(2) || '85.50');
+      } catch { setUsdRate('85.50'); }
+    };
+    fetchRate();
+    const i = setInterval(fetchRate, 300000);
+    return () => clearInterval(i);
+  }, []);
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    const form = document.createElement('form');
+    form.method = 'POST'; form.action = '/logout';
+    form.style.display = 'none';
+    document.body.appendChild(form);
+    form.submit();
+  };
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
+      <aside style={{
+          width: '260px',
+          background: 'rgba(15,15,25,0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRight: '1px solid rgba(255,255,255,0.06)',
+          padding: '2rem 0',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'fixed',
+          top: 0, left: 0, bottom: 0,
+          zIndex: 100,
+        }}>
+          {/* Логотип */}
+          <div style={{ padding: '0 1.5rem', marginBottom: '2.5rem' }}>
+            <Link to="/home" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                width: '42px', height: '42px',
+                background: 'linear-gradient(135deg, #6366f1, #c084fc, #f472b6)',
+                backgroundSize: '200% 200%',
+                animation: 'gradientShift 4s ease infinite',
+                borderRadius: '14px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.3rem',
+                boxShadow: '0 0 20px rgba(99,102,241,0.3)',
+              }}>✦</div>
+              <span style={{ fontSize: '1.15rem', fontWeight: 700, letterSpacing: '-0.5px' }}>
+                Pay<span style={{ color: '#818cf8' }}>Flow</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Навигация */}
+          <nav style={{ flex: 1 }}>
+            {navItems.map(item => {
+              const isActive = location.pathname === item.to;
+              return (
+                <Link key={item.to} to={item.to} style={{
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                  padding: '0.85rem 1.5rem', margin: '0 0.75rem 0.25rem',
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
+                  textDecoration: 'none', fontSize: '0.9rem', fontWeight: isActive ? 600 : 400,
+                  background: isActive ? 'rgba(99,102,241,0.1)' : 'transparent',
+                  borderRadius: '12px',
+                  border: isActive ? '1px solid rgba(99,102,241,0.2)' : '1px solid transparent',
+                  transition: 'all 0.3s',
+                  backdropFilter: isActive ? 'blur(10px)' : 'none',
+                }}>
+                  <span style={{ fontSize: '1.1rem', opacity: isActive ? 1 : 0.6 }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                  {isActive && <span style={{ marginLeft: 'auto', width: '6px', height: '6px', background: '#818cf8', borderRadius: '50%', boxShadow: '0 0 10px #818cf8' }} />}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Курс и пользователь */}
+          <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            {usdRate && user && (
+              <div className="glass" style={{ padding: '0.5rem 0.75rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', borderRadius: '10px' }}>
+                <span>💵</span>
+                <span style={{ color: 'rgba(255,255,255,0.5)' }}>USD/RUB</span>
+                <strong style={{ marginLeft: 'auto', color: '#818cf8' }}>{usdRate}</strong>
+              </div>
+            )}
+            {user ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                  width: '36px', height: '36px',
+                  background: 'linear-gradient(135deg, #6366f1, #c084fc)',
+                  borderRadius: '10px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.85rem', fontWeight: 700,
+                }}>
+                  {user?.preferred_username?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.preferred_username}</div>
+                </div>
+                <button onClick={handleLogout} style={{
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+                  color: 'rgba(255,255,255,0.5)', borderRadius: '8px',
+                  padding: '0.3rem 0.6rem', cursor: 'pointer', fontSize: '0.7rem',
+                  transition: 'all 0.3s',
+                }}
+                  onMouseOver={e => { e.target.style.background = 'rgba(236,72,153,0.15)'; e.target.style.borderColor = 'rgba(236,72,153,0.3)'; e.target.style.color = '#f472b6'; }}
+                  onMouseOut={e => { e.target.style.background = 'rgba(255,255,255,0.05)'; e.target.style.borderColor = 'rgba(255,255,255,0.08)'; e.target.style.color = 'rgba(255,255,255,0.5)'; }}
+                >Выйти</button>
+              </div>
+            ) : (
+              <button onClick={() => navigate('/login')} style={{
+                width: '100%', padding: '0.7rem 0',
+                background: 'linear-gradient(135deg, #6366f1, #c084fc)',
+                color: '#fff', border: 'none', borderRadius: '10px',
+                cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem',
+              }}>
+                Войти
+              </button>
+            )}
+          </div>
+        </aside>
+
+      <main style={{
+        marginLeft: user ? '260px' : 0,
+        flex: 1,
+        padding: '2rem',
+        minHeight: '100vh',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fadeIn 0.5s ease-out' }}>
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
+</file>
+
+<file path="src/context/AuthContext.jsx">
+import { createContext, useState, useEffect, useContext } from 'react';
+
+const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Прямой fetch, без CSRF-токена — это просто проверка сессии
+    fetch('/api/v1/client/profile', { 
+      credentials: 'include',
+      headers: {}
+    })
+      .then(async res => {
+        console.log('[Auth] статус:', res.status);
+        console.log('[Auth] куки:', document.cookie);
+        if (res.status === 401) {
+          setUser(null);
+          setLoading(false);
+          return null;
+        }
+        const data = await res.json();
+        console.log('[Auth] данные:', data);
+        return data;
+      })
+      .then(data => {
+        if (data) {
+          setUser(data);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('[Auth] ошибка:', err);
+        setUser(null);
+        setLoading(false);
+      });
+  }, []);
+
+  const login = () => {
+    window.location.href = 'http://localhost:9090/oauth2/authorization/keycloak';
+  };
+
+  const logout = () => {
+    window.location.href = 'http://localhost:9090/logout';
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => useContext(AuthContext);
+</file>
+
+<file path="src/pages/LoginPage.jsx">
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
+
+export default function LoginPage() {
+  const { login } = useAuth();
+  const handleLogin = login;
+
+  return (
+    <div style={{
+      minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', top: '-20%', left: '10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)', borderRadius: '50%', animation: 'float 8s ease-in-out infinite' }} />
+      <div style={{ position: 'absolute', bottom: '-20%', right: '10%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 70%)', borderRadius: '50%', animation: 'float 10s ease-in-out infinite reverse' }} />
+
+      <div className="glass glow-border" style={{ padding: '3rem 2.5rem', textAlign: 'center', maxWidth: '380px', width: '90%', position: 'relative', animation: 'fadeInUp 0.6s ease-out' }}>
+        <div style={{ width: '70px', height: '70px', background: 'linear-gradient(135deg, #6366f1, #c084fc, #f472b6)', backgroundSize: '200% 200%', animation: 'gradientShift 4s ease infinite', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', margin: '0 auto 1.5rem', boxShadow: '0 0 30px rgba(99,102,241,0.3), 0 0 60px rgba(99,102,241,0.1)' }}>✦</div>
+
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+          Pay<span style={{ color: '#818cf8' }}>Flow</span>
+        </h1>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', marginBottom: '2.5rem', lineHeight: 1.5 }}>
+          Футуристическая платёжная система
+        </p>
+
+        <button onClick={handleLogin} style={{ padding: '1rem 0', width: '100%', background: 'linear-gradient(135deg, #6366f1, #c084fc)', color: '#fff', border: 'none', borderRadius: '14px', cursor: 'pointer', fontWeight: 600, fontSize: '1rem', transition: 'all 0.3s', boxShadow: '0 4px 20px rgba(99,102,241,0.3)' }}
+          onMouseOver={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 30px rgba(99,102,241,0.5)'; }}
+          onMouseOut={e => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 20px rgba(99,102,241,0.3)'; }}>
+          Войти через Keycloak
+        </button>
+
+        <p style={{ marginTop: '1.5rem', color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', letterSpacing: '0.5px' }}>
+          🔒 ЗАЩИЩЕНО · OAuth 2.0
+        </p>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="index.html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment System</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
+</file>
+
+<file path="src/index.css">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0a0a0f;
+  color: #e8e8f0;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Анимированный фон */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 20%, rgba(99,102,241,0.08) 0%, transparent 100%),
+    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(236,72,153,0.06) 0%, transparent 100%),
+    radial-gradient(ellipse 50% 50% at 20% 80%, rgba(6,182,212,0.06) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.2), 0 0 40px rgba(99,102,241,0.1); }
+  50% { box-shadow: 0 0 30px rgba(99,102,241,0.4), 0 0 60px rgba(99,102,241,0.2); }
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.glass {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+}
+.glass:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(99,102,241,0.2);
+}
+
+.glow-border {
+  position: relative;
+}
+.glow-border::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px; right: -1px; bottom: -1px;
+  border-radius: 21px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(236,72,153,0.3), rgba(6,182,212,0.3));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.glow-border:hover::before {
+  opacity: 1;
+}
+
+.neon-text {
+  background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.neon-glow {
+  box-shadow: 0 0 20px rgba(99,102,241,0.15), 0 0 40px rgba(99,102,241,0.05);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+</file>
+
+<file path="src/main.jsx">
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+</file>
+
+<file path="src/pages/HomePage.jsx">
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
+
+export default function HomePage() {
+  const { user } = useAuth();
+
+  const features = [
+    { icon: '💳', title: 'Переводы по карте', desc: 'Мгновенные переводы', glow: 'rgba(99,102,241,0.3)' },
+    { icon: '📱', title: 'Переводы по телефону', desc: 'По номеру телефона', glow: 'rgba(236,72,153,0.3)' },
+    { icon: '💰', title: 'Пополнения', desc: 'Пополнить счёт', glow: 'rgba(6,182,212,0.3)' },
+    { icon: '🧾', title: 'Оплата услуг', desc: 'Интернет, ЖКХ', glow: 'rgba(16,185,129,0.3)' },
+    { icon: '🏦', title: 'Мои карты', desc: 'Управление картами', glow: 'rgba(245,158,11,0.3)' },
+  ];
+
+  return (
+    <div style={{ animation: 'fadeInUp 0.5s ease-out' }}>
+      {/* Баланс карточка */}
+      {user && (
+        <div className="glass glow-border" style={{
+          padding: '2rem 2.5rem', marginBottom: '2rem',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', top: '-40%', right: '-10%',
+            width: '300px', height: '300px',
+            background: 'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)',
+            borderRadius: '50%',
+            animation: 'float 6s ease-in-out infinite',
+          }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              Ваш баланс
+            </span>
+            <h1 style={{
+              fontSize: '2.8rem', fontWeight: 800, margin: '0.5rem 0',
+              background: 'linear-gradient(135deg, #818cf8, #c084fc, #f472b6)',
+              backgroundSize: '200% 200%',
+              animation: 'gradientShift 4s ease infinite',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-1px',
+            }}>
+              {user.balance !== undefined ? `${Number(user.balance).toLocaleString('ru-RU')} ₽` : '—'}
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
+              {user.preferred_username} · {new Date().toLocaleDateString('ru-RU')}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Быстрые действия */}
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: '1rem', letterSpacing: '0.5px' }}>
+        БЫСТРЫЕ ДЕЙСТВИЯ
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2.5rem' }}>
+        {['➕ Создать карту', '⚡ Перевести', '📋 Выписка'].map((item, i) => (
+          <div key={i} className="glass" style={{
+            padding: '1.2rem', cursor: 'pointer', textAlign: 'center',
+            animation: `fadeInUp 0.5s ${0.1 + i * 0.1}s ease-out both`,
+          }}>
+            <div style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>{item.split(' ')[0]}</div>
+            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>{item.slice(2)}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Услуги */}
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: '1rem', letterSpacing: '0.5px' }}>
+        УСЛУГИ
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
+        {features.map((f, i) => (
+          <div key={i} className="glass glow-border" style={{
+            padding: '1.5rem', cursor: 'pointer',
+            animation: `fadeInUp 0.5s ${0.2 + i * 0.1}s ease-out both`,
+            boxShadow: `0 0 30px ${f.glow}`,
+          }}>
+            <div style={{ fontSize: '1.8rem', marginBottom: '0.8rem', animation: 'float 4s ease-in-out infinite' }}>{f.icon}</div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#e8e8f0', marginBottom: '0.3rem' }}>{f.title}</div>
+            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>{f.desc}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="vite.config.js">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      // Proxy API requests to BFF
+      '/api': 'http://localhost:9090',
+      '/oauth2': 'http://localhost:9090',
+      '/login': 'http://localhost:9090',
+      '/logout': 'http://localhost:9090'
+    }
+  }
+})
+</file>
+
+<file path="src/api.js">
+const API_BASE = '/api/v1';
+
+export const apiFetch = async (endpoint, options = {}) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    credentials: 'include',
+    headers: headers,
+  });
+
+  if (response.status === 401) {
+    throw new Error('Unauthorized');
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Request failed with status ${response.status}`);
+  }
+
+  // Обработка пустых ответов (например, 201 Created или 204 No Content)
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+  return JSON.parse(text);
+};
+
+export const getProfile = () => apiFetch('/client/profile');
+
+// Карты
+export const createCard = (name, currency = 'RUB') => 
+  apiFetch('/cards/create', {
+    method: 'POST',
+    body: JSON.stringify({ name, currency })
+  });
+
+export const getCardById = (id) => 
+  apiFetch(`/cards/${id}`);
+
+export const blockCard = (id) => 
+  apiFetch(`/cards/${id}/block`, {
+    method: 'GET'
+  });
+
+export const getMyCards = () => 
+  apiFetch('/cards/my');
+</file>
+
+<file path="src/App.jsx">
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import AdminPage from './pages/AdminPage';
+import LoginPage from './pages/LoginPage';
+import LogoutPage from './pages/LogoutPage';
+import MyCardsPage from './pages/MyCardsPage';
+import CardDetailsPage from './pages/CardDetailsPage';
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/logout" element={<LogoutPage />} />
+          <Route path="/*" element={
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+                <Route path="/cards" element={<ProtectedRoute><MyCardsPage /></ProtectedRoute>} />
+                <Route path="/cards/:id" element={<ProtectedRoute><CardDetailsPage /></ProtectedRoute>} />
+              </Routes>
+            </Layout>
+          } />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
+</file>
+
+</files>

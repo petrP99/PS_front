@@ -8,6 +8,10 @@ import LoginPage from './pages/LoginPage';
 import LogoutPage from './pages/LogoutPage';
 import MyCardsPage from './pages/MyCardsPage';
 import CardDetailsPage from './pages/CardDetailsPage';
+import ReplenishmentPage from './pages/ReplenishmentPage';
+import MyAccountsPage from './pages/MyAccountsPage';
+import AccountDetailsPage from './pages/AccountDetailsPage';
+import AccountRequisitesPage from './pages/AccountRequisitesPage';
 
 function App() {
   return (
@@ -24,6 +28,10 @@ function App() {
                 <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
                 <Route path="/cards" element={<ProtectedRoute><MyCardsPage /></ProtectedRoute>} />
                 <Route path="/cards/:id" element={<ProtectedRoute><CardDetailsPage /></ProtectedRoute>} />
+                <Route path="/replenishment" element={<ProtectedRoute><ReplenishmentPage /></ProtectedRoute>} />
+                <Route path="/accounts" element={<ProtectedRoute><MyAccountsPage /></ProtectedRoute>} />
+                <Route path="/accounts/:id/requisites" element={<ProtectedRoute><AccountRequisitesPage /></ProtectedRoute>} />
+                <Route path="/accounts/:id" element={<ProtectedRoute><AccountDetailsPage /></ProtectedRoute>} />
               </Routes>
             </Layout>
           } />
