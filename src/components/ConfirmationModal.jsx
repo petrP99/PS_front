@@ -1,6 +1,15 @@
 import React from 'react';
 
-export default function ConfirmationModal({ isOpen, title, message, onConfirm, onCancel }) {
+export default function ConfirmationModal({
+  isOpen,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = 'Подтвердить',
+  cancelText = 'Отмена',
+  showCancel = true,
+}) {
   if (!isOpen) return null;
 
   return (
@@ -27,19 +36,21 @@ export default function ConfirmationModal({ isOpen, title, message, onConfirm, o
         <h2 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: '1rem' }}>{title}</h2>
         <p style={{ marginBottom: '2rem', color: 'rgba(255,255,255,0.7)' }}>{message}</p>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-          <button 
-            className="glass" 
-            style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer' }}
-            onClick={onCancel}
-          >
-            Отмена
-          </button>
+          {showCancel && (
+            <button
+              className="glass"
+              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer' }}
+              onClick={onCancel}
+            >
+              {cancelText}
+            </button>
+          )}
           <button 
             className="glass" 
             style={{ padding: '0.7rem 1.5rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '10px', cursor: 'pointer' }}
             onClick={onConfirm}
           >
-            Подтвердить
+            {confirmText}
           </button>
         </div>
       </div>

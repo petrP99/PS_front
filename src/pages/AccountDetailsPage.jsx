@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getAccountById } from '../api';
+import { closeAccount, getAccountById } from '../api';
 import CardNumber from '../components/CardNumber';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Toast from '../components/Toast';
 import { getCardCurrencyStyle } from '../utils/cardAppearance';
 import { formatExpireDate, getCardLastFour } from '../utils/cardFormat';
@@ -11,6 +12,8 @@ export default function AccountDetailsPage() {
   const navigate = useNavigate();
   const [account, setAccount] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [closeModal, setCloseModal] = useState(null);
+  const [closureRequested, setClosureRequested] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
 
   useEffect(() => {
@@ -32,6 +35,28 @@ export default function AccountDetailsPage() {
 
   const showToast = (message) => {
     setToast({ message, visible: true });
+  };
+
+  const handleCloseClick = () => {
+    if (Number(account.balance) !== 0) {
+      setCloseModal('balance');
+      return;
+    }
+    setCloseModal('confirm');
+  };
+
+  const handleCloseAccount = async () => {
+    try {
+      setCloseModal(null);
+      setClosureRequested(true);
+      await closeAccount(account.id);
+      showToast('Запрос на закрытие счета отправлен');
+      setTimeout(fetchAccount, 1200);
+    } catch (error) {
+      console.error('Ошибка закрытия счета:', error);
+      setClosureRequested(false);
+      showToast(`Ошибка: ${error.message}`);
+    }
   };
 
   const currencyLabels = {
@@ -62,13 +87,39 @@ export default function AccountDetailsPage() {
     <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Информация о счёте</h1>
-        <button
-          className="glass"
-          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer' }}
-          onClick={() => navigate(`/cards?accountId=${account.id}`)}
-        >
-          Создать карту
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {account.status !== 'CLOSED' && (
+            <button
+              className="glass"
+              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer' }}
+              onClick={() => navigate(`/cards?accountId=${account.id}`)}
+            >
+              Создать карту
+            </button>
+          )}
+          {account.status !== 'CLOSED' ? (
+            <button
+              className="glass"
+              disabled={closureRequested}
+              style={{
+                padding: '0.7rem 1.5rem',
+                background: 'rgba(236,72,153,0.18)',
+                border: '1px solid rgba(236,72,153,0.4)',
+                borderRadius: '12px',
+                color: '#fda4af',
+                cursor: closureRequested ? 'wait' : 'pointer',
+                opacity: closureRequested ? 0.6 : 1,
+              }}
+              onClick={handleCloseClick}
+            >
+              {closureRequested ? 'Закрытие...' : 'Закрыть счет'}
+            </button>
+          ) : (
+            <span style={{ padding: '0.7rem 1rem', borderRadius: '10px', background: 'rgba(148,163,184,0.14)', color: '#cbd5e1', fontWeight: 600 }}>
+              Счет закрыт
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="glass" style={{ padding: '2rem', borderRadius: '16px', marginBottom: '2rem' }}>
@@ -98,6 +149,13 @@ export default function AccountDetailsPage() {
             <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>Кэшбэк</div>
             <div style={{ fontSize: '1.2rem', fontWeight: 500 }}>
               {account.cashback || 0}%
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>Статус</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 500, color: account.status === 'CLOSED' ? '#cbd5e1' : '#86efac' }}>
+              {account.status === 'CLOSED' ? 'Закрыт' : 'Активен'}
             </div>
           </div>
         </div>
@@ -183,6 +241,25 @@ export default function AccountDetailsPage() {
         message={toast.message}
         visible={toast.visible}
         onClose={() => setToast({ message: '', visible: false })}
+      />
+
+      <ConfirmationModal
+        isOpen={closeModal === 'balance'}
+        title="Закрытие счета невозможно"
+        message="Закрыть счет можно только при нулевом балансе. Переведите или снимите оставшиеся средства и повторите попытку."
+        confirmText="Понятно"
+        showCancel={false}
+        onConfirm={() => setCloseModal(null)}
+        onCancel={() => setCloseModal(null)}
+      />
+
+      <ConfirmationModal
+        isOpen={closeModal === 'confirm'}
+        title="Закрыть счет?"
+        message="Операцию невозможно отменить. После подтверждения запрос будет отправлен на закрытие счета."
+        confirmText="Закрыть безвозвратно"
+        onConfirm={handleCloseAccount}
+        onCancel={() => setCloseModal(null)}
       />
     </div>
   );

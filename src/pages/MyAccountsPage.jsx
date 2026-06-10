@@ -158,7 +158,7 @@ export default function MyAccountsPage() {
                         {account.name || `Счёт ${account.id.toString().slice(-4)}`}
                       </div>
                       <span style={{ color: colorStyle.accent, fontSize: '0.8rem', fontWeight: 600 }}>
-                        {account.currency}
+                        {account.status === 'CLOSED' ? 'ЗАКРЫТ' : account.currency}
                       </span>
                     </div>
                     <div style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '1rem' }}>

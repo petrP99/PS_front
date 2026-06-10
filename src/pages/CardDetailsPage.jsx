@@ -123,7 +123,7 @@ export default function CardDetailsPage() {
             <button 
               className="glass" 
               style={{ padding: '0.8rem 1.5rem', background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '10px', cursor: 'pointer' }}
-              onClick={() => window.location.href = `/replenishment?cardId=${card.id}`}
+              onClick={() => window.location.href = `/replenishment?accountId=${card.accountId}`}
             >
               Пополнить
             </button>

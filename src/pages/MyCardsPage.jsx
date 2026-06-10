@@ -11,11 +11,12 @@ export default function MyCardsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedAccountId = searchParams.get('accountId') || '';
+  const createRequested = searchParams.get('create') === 'true';
   const [cards, setCards] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cardToBlock, setCardToBlock] = useState(null);
-  const [showCreateForm, setShowCreateForm] = useState(Boolean(requestedAccountId));
+  const [showCreateForm, setShowCreateForm] = useState(Boolean(requestedAccountId) || createRequested);
   const [newCardData, setNewCardData] = useState({
     name: '',
     isPremium: false,
@@ -26,6 +27,11 @@ export default function MyCardsPage() {
     RUB: '🇷🇺',
     USD: '🇺🇸',
     CNY: '🇨🇳',
+  };
+  const currencyLabels = {
+    RUB: { label: 'Рубли', sign: '₽' },
+    USD: { label: 'Доллары', sign: '$' },
+    CNY: { label: 'Юани', sign: '¥' },
   };
   const selectedAccount = accounts.find(account => account.id === newCardData.accountId);
   const accountsById = new Map(accounts.map(account => [account.id, account]));
@@ -39,8 +45,10 @@ export default function MyCardsPage() {
     if (requestedAccountId && accounts.some(account => account.id === requestedAccountId)) {
       setNewCardData(data => ({ ...data, accountId: requestedAccountId }));
       setShowCreateForm(true);
+    } else if (createRequested) {
+      setShowCreateForm(true);
     }
-  }, [accounts, requestedAccountId]);
+  }, [accounts, createRequested, requestedAccountId]);
 
   const fetchCards = async () => {
     try {
@@ -72,7 +80,7 @@ export default function MyCardsPage() {
   const resetCreateForm = () => {
     setShowCreateForm(false);
     setNewCardData({ name: '', isPremium: false, accountId: '' });
-    if (requestedAccountId) {
+    if (requestedAccountId || createRequested) {
       navigate('/cards', { replace: true });
     }
   };
@@ -114,13 +122,13 @@ export default function MyCardsPage() {
     }
   };
 
-  // Группируем карты по валюте
-  const cardsByCurrency = {};
+  // Группируем карты по счетам
+  const cardsByAccount = {};
   cards.forEach(card => {
-    if (!cardsByCurrency[card.currency]) {
-      cardsByCurrency[card.currency] = [];
+    if (!cardsByAccount[card.accountId]) {
+      cardsByAccount[card.accountId] = [];
     }
-    cardsByCurrency[card.currency].push(card);
+    cardsByAccount[card.accountId].push(card);
   });
 
   return (
@@ -243,22 +251,35 @@ export default function MyCardsPage() {
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <p>Загрузка карт...</p>
         </div>
-      ) : Object.keys(cardsByCurrency).length === 0 ? (
+      ) : Object.keys(cardsByAccount).length === 0 ? (
         <div className="glass" style={{ padding: '2rem', textAlign: 'center', borderRadius: '16px' }}>
           <p>У вас пока нет карт</p>
         </div>
       ) : (
-        Object.entries(cardsByCurrency).map(([currency, currencyCards]) => (
-          <div key={currency} className="glass" style={{ padding: '1.5rem', marginBottom: '2rem', borderRadius: '16px' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem' }}>
-              {currency === 'RUB' ? 'Рубли' : currency === 'USD' ? 'Доллары' : 'Юани'} ({currency})
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
-              {currencyCards.map(card => {
-                const account = accountsById.get(card.accountId);
-                const colorStyle = getCardCurrencyStyle(card.currency);
+        Object.entries(cardsByAccount).map(([accountId, accountCards]) => {
+          const account = accountsById.get(accountId);
+          const currency = account?.currency || accountCards[0]?.currency;
 
-                return (
+          return (
+            <div key={accountId} className="glass" style={{ padding: '1.5rem', marginBottom: '2rem', borderRadius: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                    {account?.name || `Счет ${String(accountId).slice(-4)}`}
+                  </h2>
+                  <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>
+                    {currencyLabels[currency]?.label || currency} ({currency})
+                  </div>
+                </div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 700, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  {Number(account?.balance || 0).toLocaleString('ru-RU')} {currencyLabels[currency]?.sign || currency}
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+                {accountCards.map(card => {
+                  const colorStyle = getCardCurrencyStyle(card.currency);
+
+                  return (
                   <div
                     key={card.id}
                     style={{
@@ -303,9 +324,6 @@ export default function MyCardsPage() {
                     <div style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '0.5rem' }}>
                       {card.name || `Карта ${getCardLastFour(card.cardNumber)}`}
                     </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '1rem' }}>
-                      {card.balance.toLocaleString('ru-RU')} {currency}
-                    </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'rgba(255,255,255,0.72)' }}>
                       <CardNumber cardNumber={card.cardNumber} />
                       <span>{formatExpireDate(card.expireDate)}</span>
@@ -315,7 +333,7 @@ export default function MyCardsPage() {
                         <button
                           className="glass"
                           style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', cursor: 'pointer' }}
-                          onClick={e => { e.stopPropagation(); navigate(`/replenishment?cardId=${card.id}`); }}
+                          onClick={e => { e.stopPropagation(); navigate(`/replenishment?accountId=${card.accountId}`); }}
                         >
                           Пополнить
                         </button>
@@ -336,11 +354,12 @@ export default function MyCardsPage() {
                       </div>
                     )}
                   </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
 
       <Toast

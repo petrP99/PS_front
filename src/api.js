@@ -14,13 +14,7 @@ export const apiFetch = async (endpoint, options = {}) => {
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    credentials: 'include',
-    headers: headers,
-  });
-
-  // Если метод не GET, добавляем CSRF-токен
+  // Если метод не GET, добавляем CSRF-токен до отправки запроса
   if (options.method && options.method !== 'GET') {
     const csrfToken = getCookie('XSRF-TOKEN');
     if (csrfToken) {
@@ -28,13 +22,27 @@ export const apiFetch = async (endpoint, options = {}) => {
     }
   }
 
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    credentials: 'include',
+    headers: headers,
+  });
+
   if (response.status === 401) {
     throw new Error('Unauthorized');
   }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Request failed with status ${response.status}`);
+    const error = new Error(
+      errorData.message ||
+      errorData.detail ||
+      errorData.error ||
+      `Request failed with status ${response.status}`
+    );
+    error.status = response.status;
+    error.data = errorData;
+    throw error;
   }
 
   // Обработка пустых ответов (например, 201 Created или 204 No Content)
@@ -69,14 +77,27 @@ export const getMyCards = () =>
 export const getReplenishments = () =>
   apiFetch('/replenishments/my');
 
-export const getReplenishmentsByCard = (cardId) =>
-  apiFetch(`/replenishments/cards/${cardId}`);
+export const getReplenishmentsByAccount = (accountId) =>
+  apiFetch(`/replenishments/accounts/${accountId}`);
 
-export const replenishCard = (cardId, amount, clientId) =>
-  apiFetch(`/replenishments/cards/${cardId}`, {
+export const replenishAccount = (accountId, amount) =>
+  apiFetch('/replenishments', {
     method: 'POST',
-    body: JSON.stringify({ amount, clientId, cardId })
+    body: JSON.stringify({ amount, accountId })
   });
+
+// Платежи
+export const createPayment = ({ accountId, recipient, paymentDestination, amount }) =>
+  apiFetch('/payments/create', {
+    method: 'POST',
+    body: JSON.stringify({ accountId, recipient, paymentDestination, amount })
+  });
+
+export const getPayments = () =>
+  apiFetch('/payments/my?size=500');
+
+export const getPaymentById = (id) =>
+  apiFetch(`/payments/${id}`);
 
 // Счета
 export const getMyAccounts = () =>
@@ -90,3 +111,66 @@ export const createAccount = (currency, name) =>
     method: 'POST',
     body: JSON.stringify({ currency, name })
   });
+
+export const closeAccount = (id) =>
+  apiFetch(`/account/${id}/close`, {
+    method: 'POST'
+  });
+
+// Валютные курсы
+export const getCurrencyRates = async () => {
+  const response = await apiFetch('/currency/rates');
+  return Object.fromEntries(
+    response.rates.map(({ currency, rate }) => [currency, rate])
+  );
+};
+
+// Переводы между своими счетами
+export const previewAccountTransfer = ({ accountFrom, accountTo, amount }) =>
+  apiFetch('/account-transfers/preview', {
+    method: 'POST',
+    body: JSON.stringify({ accountFrom, accountTo, amount })
+  });
+
+export const createAccountTransfer = ({ accountFrom, accountTo, amount }) =>
+  apiFetch('/account-transfers', {
+    method: 'POST',
+    body: JSON.stringify({ accountFrom, accountTo, amount })
+  });
+
+// Переводы
+export const getTransferCards = () =>
+  apiFetch('/transfers/cards');
+
+export const previewTransfer = ({ cardFrom, cardTo, amount, message }) =>
+  apiFetch('/transfers/preview', {
+    method: 'POST',
+    body: JSON.stringify({ cardFrom, cardTo, amount, message })
+  });
+
+export const createTransfer = ({ cardFrom, cardTo, amount, message }) =>
+  apiFetch('/transfers/create', {
+    method: 'POST',
+    body: JSON.stringify({ cardFrom, cardTo, amount, message })
+  });
+
+export const previewPhoneTransfer = ({ cardFrom, phone, amount, message }) =>
+  apiFetch('/transfers/preview-phone', {
+    method: 'POST',
+    body: JSON.stringify({ cardFrom, phone, amount, message })
+  });
+
+export const createPhoneTransfer = ({ cardFrom, phone, amount, message }) =>
+  apiFetch('/transfers/create-phone', {
+    method: 'POST',
+    body: JSON.stringify({ cardFrom, phone, amount, message })
+  });
+
+export const getTransferById = (id) =>
+  apiFetch(`/transfers/${id}`);
+
+export const getTransferHistory = () =>
+  apiFetch('/transfers/my?size=500');
+
+export const getTransferHistoryById = (id) =>
+  apiFetch(`/transfers/history/${id}`);
