@@ -139,9 +139,6 @@ export const createAccountTransfer = ({ accountFrom, accountTo, amount }) =>
   });
 
 // Переводы
-export const getTransferCards = () =>
-  apiFetch('/transfers/cards');
-
 export const previewTransfer = ({ cardFrom, cardTo, amount, message }) =>
   apiFetch('/transfers/preview', {
     method: 'POST',

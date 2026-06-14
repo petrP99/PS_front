@@ -35,12 +35,7 @@ export default function TransferMethodPage() {
         </p>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-        gap: '1.25rem',
-        maxWidth: '760px',
-      }}>
+      <div className="transfer-method-grid">
         {methods.map(method => (
           <button
             key={method.path}

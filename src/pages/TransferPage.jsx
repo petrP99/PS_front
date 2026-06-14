@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   createPhoneTransfer,
   createTransfer,
-  getTransferCards,
+  getMyCards,
   previewPhoneTransfer,
   previewTransfer,
 } from '../api';
@@ -54,7 +54,7 @@ export default function TransferPage({ mode = 'card' }) {
   useEffect(() => {
     const loadCards = async () => {
       try {
-        const result = await getTransferCards();
+        const result = await getMyCards();
         const activeCards = result.filter(card =>
           card.status === 'ACTIVE' && (!isPhoneTransfer || card.currency === 'RUB')
         );

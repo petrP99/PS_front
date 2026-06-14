@@ -17,6 +17,7 @@ export default function MyCardsPage() {
   const [loading, setLoading] = useState(true);
   const [cardToBlock, setCardToBlock] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(Boolean(requestedAccountId) || createRequested);
+  const [creationSucceeded, setCreationSucceeded] = useState(false);
   const [newCardData, setNewCardData] = useState({
     name: '',
     isPremium: false,
@@ -49,6 +50,19 @@ export default function MyCardsPage() {
       setShowCreateForm(true);
     }
   }, [accounts, createRequested, requestedAccountId]);
+
+  useEffect(() => {
+    if (!creationSucceeded) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setCreationSucceeded(false);
+      setShowCreateForm(false);
+      setNewCardData({ name: '', isPremium: false, accountId: '' });
+      navigate('/cards', { replace: true });
+    }, 1500);
+
+    return () => window.clearTimeout(timer);
+  }, [creationSucceeded, navigate]);
 
   const fetchCards = async () => {
     try {
@@ -98,9 +112,8 @@ export default function MyCardsPage() {
         isPremium: newCardData.isPremium,
         accountId: newCardData.accountId,
       });
-      await fetchCards();
-      resetCreateForm();
-      showToast('Карта успешно создана!');
+      setCreationSucceeded(true);
+      void fetchCards();
     } catch (error) {
       console.error('Ошибка создания карты:', error);
       showToast(`Ошибка: ${error.message}`);
@@ -137,7 +150,7 @@ export default function MyCardsPage() {
         <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Мои карты</h1>
         <button 
           className="glass" 
-          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer' }}
+          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#fff' }}
           onClick={() => {
             setNewCardData({ name: '', isPremium: false, accountId: '' });
             setShowCreateForm(true);
@@ -156,7 +169,7 @@ export default function MyCardsPage() {
               <input
                 type="text"
                 className="glass"
-                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)' }}
+                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff' }}
                 value={newCardData.name}
                 onChange={e => setNewCardData({ ...newCardData, name: e.target.value })}
                 placeholder="Например, Основная карта"
@@ -230,7 +243,7 @@ export default function MyCardsPage() {
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button 
               className="glass" 
-              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: newCardData.accountId ? 'pointer' : 'not-allowed', opacity: newCardData.accountId ? 1 : 0.5 }}
+              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: newCardData.accountId ? 'pointer' : 'not-allowed', opacity: newCardData.accountId ? 1 : 0.5, color: '#fff' }}
               onClick={handleCreateCard}
               disabled={!newCardData.accountId}
             >
@@ -238,7 +251,7 @@ export default function MyCardsPage() {
             </button>
             <button 
               className="glass" 
-              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer' }}
+              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
               onClick={resetCreateForm}
             >
               Отмена
@@ -368,6 +381,16 @@ export default function MyCardsPage() {
         onClose={() => setToast({ message: '', visible: false })}
       />
 
+      {creationSucceeded && (
+        <div role="dialog" aria-modal="true" aria-labelledby="card-created-title" style={successOverlayStyle}>
+          <div className="glass" style={successModalStyle}>
+            <div style={successIconStyle}>✓</div>
+            <h2 id="card-created-title" style={{ marginBottom: '0.6rem' }}>Карта успешно создана</h2>
+            <p style={{ color: 'rgba(255,255,255,0.6)' }}>Переходим к списку карт...</p>
+          </div>
+        </div>
+      )}
+
       <ConfirmationModal
         isOpen={!!cardToBlock}
         title="Подтверждение блокировки"
@@ -378,3 +401,37 @@ export default function MyCardsPage() {
     </div>
   );
 }
+
+const successOverlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 1000,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '1rem',
+  background: 'rgba(0,0,0,0.55)',
+  animation: 'fadeIn 0.3s ease-out',
+};
+
+const successModalStyle = {
+  width: 'min(90%, 450px)',
+  padding: '2.5rem',
+  borderRadius: '20px',
+  textAlign: 'center',
+  animation: 'scaleIn 0.3s ease-out',
+};
+
+const successIconStyle = {
+  width: '76px',
+  height: '76px',
+  margin: '0 auto 1.25rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '50%',
+  background: 'rgba(34,197,94,0.14)',
+  border: '1px solid rgba(34,197,94,0.4)',
+  color: '#86efac',
+  fontSize: '2rem',
+};

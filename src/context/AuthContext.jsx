@@ -41,12 +41,16 @@ export function AuthProvider({ children }) {
     window.location.href = 'http://localhost:9090/oauth2/authorization/keycloak';
   };
 
+  const register = () => {
+    window.location.href = 'http://localhost:9090/oauth2/authorization/keycloak?action=register';
+  };
+
   const logout = () => {
     window.location.href = 'http://localhost:9090/logout';
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

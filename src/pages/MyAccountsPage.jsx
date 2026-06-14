@@ -66,7 +66,7 @@ export default function MyAccountsPage() {
         <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Мои счета</h1>
         <button 
           className="glass" 
-          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer' }}
+          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#fff' }}
           onClick={() => setShowCreateForm(true)}
         >
           Создать счёт
@@ -82,7 +82,7 @@ export default function MyAccountsPage() {
               <input
                 type="text"
                 className="glass"
-                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)' }}
+                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff' }}
                 value={newAccountData.name}
                 onChange={e => setNewAccountData({ ...newAccountData, name: e.target.value })}
                 placeholder="Например, Накопительный"
@@ -105,14 +105,14 @@ export default function MyAccountsPage() {
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button 
               className="glass" 
-              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: 'pointer' }}
+              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
               onClick={handleCreateAccount}
             >
               Создать
             </button>
             <button 
               className="glass" 
-              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer' }}
+              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
               onClick={() => setShowCreateForm(false)}
             >
               Отмена

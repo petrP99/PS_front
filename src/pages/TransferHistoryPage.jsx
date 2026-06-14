@@ -18,6 +18,7 @@ const sections = [
 export default function TransferHistoryPage() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('all');
+  const [reportNoticeOpen, setReportNoticeOpen] = useState(false);
   const [transfers, setTransfers] = useState([]);
   const [payments, setPayments] = useState([]);
   const [replenishments, setReplenishments] = useState([]);
@@ -113,13 +114,22 @@ export default function TransferHistoryPage() {
 
   return (
     <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-          История
-        </h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Ваши финансовые операции
-        </p>
+      <div style={pageHeaderStyle}>
+        <div>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+            История
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)' }}>
+            Ваши финансовые операции
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setReportNoticeOpen(true)}
+          style={reportButtonStyle}
+        >
+          Сгенерировать отчет
+        </button>
       </div>
 
       <BalanceHistoryChart
@@ -249,11 +259,14 @@ export default function TransferHistoryPage() {
                           textAlign: 'left',
                         }}
                       >
-                        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {transfer.operationType === 'ACCOUNT'
-                            ? 'Между своими счетами'
-                            : transfer.counterparty || 'Контрагент не указан'}
-                        </span>
+                        <div style={operationInfoStyle}>
+                          <OperationIcon type="transfer" />
+                          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {transfer.operationType === 'ACCOUNT'
+                              ? 'Между своими счетами'
+                              : transfer.counterparty || 'Контрагент не указан'}
+                          </span>
+                        </div>
                         <strong style={{ color: getAmountColor(transfer), whiteSpace: 'nowrap' }}>
                           {transfer.operationType === 'ACCOUNT' ? '−' : transfer.incoming ? '+' : '−'}
                           {formatMoney(amount.value)} {amount.currency}
@@ -267,6 +280,37 @@ export default function TransferHistoryPage() {
           </div>
         )}
       </div>
+
+      {reportNoticeOpen && (
+        <div
+          role="presentation"
+          onClick={() => setReportNoticeOpen(false)}
+          style={modalOverlayStyle}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-notice-title"
+            onClick={event => event.stopPropagation()}
+            className="glass"
+            style={modalStyle}
+          >
+            <h2 id="report-notice-title" style={{ marginBottom: '0.8rem' }}>
+              Генерация отчета
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.65)', lineHeight: 1.6 }}>
+              Функционал находится в разработке, пока идите нахуй
+            </p>
+            <button
+              type="button"
+              onClick={() => setReportNoticeOpen(false)}
+              style={modalButtonStyle}
+            >
+              Закрыть
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -450,9 +494,12 @@ function AllOperationGroups({ groups, onSelect }) {
                     cursor: operation.path ? 'pointer' : 'default',
                   }}
                 >
-                  <div style={{ minWidth: 0 }}>
-                    <div style={operationTitleStyle}>{operation.title}</div>
-                    <div style={operationPurposeStyle}>{operation.purpose}</div>
+                  <div style={operationInfoStyle}>
+                    <OperationIcon type={operation.type} recipient={operation.recipient} />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={operationTitleStyle}>{operation.title}</div>
+                      <div style={operationPurposeStyle}>{operation.purpose}</div>
+                    </div>
                   </div>
                   <strong style={{
                     color: getOperationAmountColor(operation),
@@ -484,9 +531,12 @@ function PaymentGroups({ groups, onSelect }) {
                 onClick={() => onSelect(payment)}
                 style={operationButtonStyle}
               >
-                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {getPaymentRecipientLabel(payment.recipient)}
-                </span>
+                <div style={operationInfoStyle}>
+                  <OperationIcon type="payment" recipient={payment.recipient} />
+                  <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {getPaymentRecipientLabel(payment.recipient)}
+                  </span>
+                </div>
                 <strong style={{
                   color: payment.status === 'FAILED' ? '#f87171' : '#fff',
                   whiteSpace: 'nowrap',
@@ -531,9 +581,12 @@ function ReplenishmentGroups({ groups }) {
                   background: 'rgba(255,255,255,0.035)',
                 }}
               >
-                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {replenishment.accountName || `Счет ${String(replenishment.accountId).slice(-4)}`}
-                </span>
+                <div style={operationInfoStyle}>
+                  <OperationIcon type="replenishment" />
+                  <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {replenishment.accountName || `Счет ${String(replenishment.accountId).slice(-4)}`}
+                  </span>
+                </div>
                 <strong style={{
                   color: replenishment.status === 'FAILED' ? '#f87171' : '#4ade80',
                   whiteSpace: 'nowrap',
@@ -554,6 +607,51 @@ function EmptyState({ children, color = 'rgba(255,255,255,0.5)' }) {
     <div style={{ padding: '2.5rem', textAlign: 'center', color }}>
       {children}
     </div>
+  );
+}
+
+function OperationIcon({ type, recipient }) {
+  if (type === 'transfer') {
+    return (
+      <span style={{ ...operationIconStyle, color: '#a5b4fc' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" style={operationSvgStyle}>
+          <path d="M7 7h9.5l-2.2-2.2M17 17H7.5l2.2 2.2" />
+          <path d="M17 7a7 7 0 0 1 1.5 8M7 17a7 7 0 0 1-1.5-8" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (type === 'replenishment') {
+    return (
+      <span style={{ ...operationIconStyle, color: '#4ade80' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" style={operationSvgStyle}>
+          <path d="M12 4v12M7 11l5 5 5-5M5 20h14" />
+        </svg>
+      </span>
+    );
+  }
+
+  return (
+    <span style={{ ...operationIconStyle, color: '#fbbf24' }}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" style={operationSvgStyle}>
+        {recipient === 'MOBILE_PHONE' ? (
+          <>
+            <rect x="7.5" y="3" width="9" height="18" rx="2" />
+            <path d="M10.5 6h3M11 18h2" />
+          </>
+        ) : recipient === 'INTERNET' ? (
+          <>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3c3 3.3 3 14.7 0 18M12 3c-3 3.3-3 14.7 0 18" />
+          </>
+        ) : (
+          <>
+            <path d="M3 11l9-7 9 7M5 10v10h14V10M9 20v-6h6v6" />
+          </>
+        )}
+      </svg>
+    </span>
   );
 }
 
@@ -661,6 +759,7 @@ function buildAllOperations(transfers, payments, replenishments) {
     sign: '−',
     incoming: false,
     status: payment.status,
+    recipient: payment.recipient,
     path: `/history/payments/${payment.id}`,
   }));
 
@@ -936,6 +1035,35 @@ const operationPurposeStyle = {
   whiteSpace: 'nowrap',
 };
 
+const operationInfoStyle = {
+  minWidth: 0,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.8rem',
+};
+
+const operationIconStyle = {
+  width: '38px',
+  height: '38px',
+  flexShrink: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid rgba(255,255,255,0.09)',
+  borderRadius: '12px',
+  background: 'rgba(255,255,255,0.045)',
+};
+
+const operationSvgStyle = {
+  width: '21px',
+  height: '21px',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.8,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+};
+
 const historyWarningStyle = {
   marginBottom: '1rem',
   padding: '0.8rem 1rem',
@@ -974,4 +1102,53 @@ const chartNoteStyle = {
   marginTop: '0.5rem',
   color: 'rgba(255,255,255,0.35)',
   fontSize: '0.72rem',
+};
+
+const pageHeaderStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '1rem',
+  marginBottom: '2rem',
+};
+
+const reportButtonStyle = {
+  padding: '0.75rem 1.1rem',
+  border: '1px solid rgba(129,140,248,0.35)',
+  borderRadius: '12px',
+  background: 'rgba(99,102,241,0.14)',
+  color: '#fff',
+  cursor: 'pointer',
+  fontWeight: 600,
+};
+
+const modalOverlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 1000,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '1.5rem',
+  background: 'rgba(0,0,0,0.72)',
+  backdropFilter: 'blur(8px)',
+};
+
+const modalStyle = {
+  width: '100%',
+  maxWidth: '480px',
+  padding: '2rem',
+  borderRadius: '20px',
+  textAlign: 'center',
+};
+
+const modalButtonStyle = {
+  marginTop: '1.5rem',
+  padding: '0.75rem 1.5rem',
+  border: '1px solid rgba(129,140,248,0.35)',
+  borderRadius: '10px',
+  background: 'rgba(99,102,241,0.18)',
+  color: '#fff',
+  cursor: 'pointer',
+  fontWeight: 600,
 };
