@@ -6,10 +6,10 @@ export default defineConfig({
   server: {
     proxy: {
       // Proxy API requests to BFF
-      '/api': 'http://localhost:9090',
-      '/oauth2': 'http://localhost:9090',
-      '/login': 'http://localhost:9090',
-      '/logout': 'http://localhost:9090'
+      '/api': 'http://localhost:9091',
+      '/oauth2': 'http://localhost:9091',
+      '/login': 'http://localhost:9091',
+      '/logout': 'http://localhost:9091'
     }
   }
 })

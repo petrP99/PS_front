@@ -38,15 +38,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = () => {
-    window.location.href = 'http://localhost:9090/oauth2/authorization/keycloak';
+    window.location.href = 'http://localhost:9091/oauth2/authorization/keycloak';
   };
 
   const register = () => {
-    window.location.href = 'http://localhost:9090/oauth2/authorization/keycloak?action=register';
+    window.location.href = 'http://localhost:9091/oauth2/authorization/keycloak?action=register';
   };
 
   const logout = () => {
-    window.location.href = 'http://localhost:9090/logout';
+    window.location.href = 'http://localhost:9091/logout';
   };
 
   return (
