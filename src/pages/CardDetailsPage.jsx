@@ -122,7 +122,7 @@ export default function CardDetailsPage() {
           {card.status === 'ACTIVE' && (
             <button 
               className="glass" 
-              style={{ padding: '0.8rem 1.5rem', background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '10px', cursor: 'pointer' }}
+              style={{ padding: '0.8rem 1.5rem', background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
               onClick={() => window.location.href = `/replenishment?accountId=${card.accountId}`}
             >
               Пополнить
@@ -131,7 +131,7 @@ export default function CardDetailsPage() {
           {card.status === 'ACTIVE' && (
             <button 
               className="glass" 
-              style={{ padding: '0.8rem 1.5rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '10px', cursor: 'pointer' }}
+              style={{ padding: '0.8rem 1.5rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
               onClick={() => setShowBlockConfirm(true)}
             >
               Заблокировать карту

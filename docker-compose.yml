@@ -1,0 +1,18 @@
+services:
+  ps-front:
+    image: ps-front:latest
+    container_name: ps-front
+    build:
+      context: .
+      args:
+        VITE_BFF_BASE_URL: ${VITE_BFF_BASE_URL:-http://localhost:9091}
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+    networks:
+      - observability-net
+
+networks:
+  observability-net:
+    external: true
+    name: ps-observability-net

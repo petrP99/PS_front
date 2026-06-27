@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
+import { bffUrl } from '../config';
 
 const AuthContext = createContext();
 
@@ -7,22 +8,17 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Прямой fetch, без CSRF-токена — это просто проверка сессии
-    fetch('/api/v1/client/profile', { 
+    fetch(bffUrl('/api/v1/client/profile'), {
       credentials: 'include',
       headers: {}
     })
       .then(async res => {
-        console.log('[Auth] статус:', res.status);
-        console.log('[Auth] куки:', document.cookie);
         if (res.status === 401) {
           setUser(null);
           setLoading(false);
           return null;
         }
-        const data = await res.json();
-        console.log('[Auth] данные:', data);
-        return data;
+        return res.json();
       })
       .then(data => {
         if (data) {
@@ -31,22 +27,22 @@ export function AuthProvider({ children }) {
         setLoading(false);
       })
       .catch(err => {
-        console.error('[Auth] ошибка:', err);
+        console.error('[Auth] profile request failed:', err);
         setUser(null);
         setLoading(false);
       });
   }, []);
 
   const login = () => {
-    window.location.href = 'http://localhost:9091/oauth2/authorization/keycloak';
+    window.location.href = bffUrl('/oauth2/authorization/keycloak');
   };
 
   const register = () => {
-    window.location.href = 'http://localhost:9091/oauth2/authorization/keycloak?action=register';
+    window.location.href = bffUrl('/oauth2/authorization/keycloak?action=register');
   };
 
   const logout = () => {
-    window.location.href = 'http://localhost:9091/logout';
+    window.location.href = bffUrl('/logout');
   };
 
   return (

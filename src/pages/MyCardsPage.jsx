@@ -150,7 +150,7 @@ export default function MyCardsPage() {
         <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Мои карты</h1>
         <button 
           className="glass" 
-          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#fff' }}
+          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#daf5ce' }}
           onClick={() => {
             setNewCardData({ name: '', isPremium: false, accountId: '' });
             setShowCreateForm(true);
@@ -345,7 +345,7 @@ export default function MyCardsPage() {
                       {card.status === 'ACTIVE' && (
                         <button
                           className="glass"
-                          style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', cursor: 'pointer' }}
+                          style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', cursor: 'pointer', color: '#19ff8a' }}
                           onClick={e => { e.stopPropagation(); navigate(`/replenishment?accountId=${card.accountId}`); }}
                         >
                           Пополнить
@@ -354,7 +354,7 @@ export default function MyCardsPage() {
                       {card.status === 'ACTIVE' && (
                         <button
                           className="glass"
-                          style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '8px', cursor: 'pointer' }}
+                          style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', background: 'rgb(163 14 48 / 0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '8px', cursor: 'pointer', color: '#f69090' }}
                           onClick={e => { e.stopPropagation(); setCardToBlock(card); }}
                         >
                           Заблокировать

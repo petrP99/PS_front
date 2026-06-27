@@ -39,7 +39,7 @@ export default function ConfirmationModal({
           {showCancel && (
             <button
               className="glass"
-              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer' }}
+              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
               onClick={onCancel}
             >
               {cancelText}
@@ -47,7 +47,7 @@ export default function ConfirmationModal({
           )}
           <button 
             className="glass" 
-            style={{ padding: '0.7rem 1.5rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '10px', cursor: 'pointer' }}
+            style={{ padding: '0.7rem 1.5rem', background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
             onClick={onConfirm}
           >
             {confirmText}

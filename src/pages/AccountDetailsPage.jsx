@@ -91,7 +91,7 @@ export default function AccountDetailsPage() {
           {account.status !== 'CLOSED' && (
             <button
               className="glass"
-              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer' }}
+              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#19ff8a' }}
               onClick={() => navigate(`/cards?accountId=${account.id}`)}
             >
               Создать карту
