@@ -155,7 +155,6 @@ export default function HomePage() {
                     ? 'Недоступен'
                     : `${formatCashbackMoney(currentMonthCashback)} руб`}
               </strong>
-              <span style={cashbackHintStyle}>Открыть начисления</span>
             </button>
           </div>
         </div>
@@ -253,21 +252,25 @@ const homeSummaryGridStyle = {
   position: 'relative',
   zIndex: 1,
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
   gap: '1.5rem',
   alignItems: 'stretch',
 };
 
 const cashbackSummaryStyle = {
-  minHeight: '164px',
-  padding: '1.35rem',
-  border: '1px solid rgba(45,212,191,0.24)',
-  borderRadius: '18px',
-  background: 'linear-gradient(135deg, rgba(20,184,166,0.16), rgba(99,102,241,0.12))',
+  width: '100%',
+  maxWidth: '260px',
+  minHeight: '124px',
+  justifySelf: 'end',
+  alignSelf: 'start',
+  padding: '1rem',
+  border: '1px solid rgba(251,191,36,0.24)',
+  borderRadius: '16px',
+  background: 'linear-gradient(135deg, rgba(39,39,42,0.78), rgba(24,24,27,0.92))',
   color: '#fff',
   cursor: 'pointer',
   textAlign: 'left',
-  boxShadow: '0 0 32px rgba(20,184,166,0.12)',
+  boxShadow: '0 18px 42px rgba(0,0,0,0.24)',
 };
 
 const cashbackLabelStyle = {
@@ -281,16 +284,21 @@ const cashbackLabelStyle = {
 };
 
 const cashbackValueStyle = {
-  display: 'block',
+  minWidth: '42px',
+  height: '30px',
+  padding: '0 0.65rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   marginBottom: '0.65rem',
-  color: '#99f6e4',
-  fontSize: '1.6rem',
-  lineHeight: 1.15,
-};
-
-const cashbackHintStyle = {
-  color: 'rgba(255,255,255,0.42)',
-  fontSize: '0.82rem',
+  border: '1px solid rgba(251,191,36,0.42)',
+  borderRadius: '999px',
+  background: 'rgba(251,191,36,0.14)',
+  color: '#facc15',
+  fontSize: '0.78rem',
+  fontWeight: 850,
+  lineHeight: 1,
+  whiteSpace: 'nowrap',
 };
 
 const homeBalanceStyle = {

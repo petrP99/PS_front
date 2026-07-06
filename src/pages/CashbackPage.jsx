@@ -52,6 +52,8 @@ export default function CashbackPage() {
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [selectionSaving, setSelectionSaving] = useState(false);
   const [selectionError, setSelectionError] = useState('');
+  const currentMonthValue = useMemo(() => getMonthValue(new Date()), []);
+  const canGoNextMonth = selectedMonth < currentMonthValue;
 
   useEffect(() => {
     const loadCashback = async () => {
@@ -173,6 +175,16 @@ export default function CashbackPage() {
     });
   };
 
+  const handlePreviousMonth = () => {
+    setSelectedMonth(shiftMonthValue(selectedMonth, -1));
+  };
+
+  const handleNextMonth = () => {
+    if (canGoNextMonth) {
+      setSelectedMonth(shiftMonthValue(selectedMonth, 1));
+    }
+  };
+
   return (
     <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
       <div style={pageHeaderStyle}>
@@ -185,15 +197,42 @@ export default function CashbackPage() {
           </p>
         </div>
 
-        <label style={monthPickerStyle}>
+        <div style={monthPickerStyle}>
           <span style={monthPickerLabelStyle}>Месяц</span>
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={event => setSelectedMonth(event.target.value)}
-            style={monthInputStyle}
-          />
-        </label>
+          <div style={monthControlStyle}>
+            <button
+              type="button"
+              onClick={handlePreviousMonth}
+              style={monthNavButtonStyle}
+              aria-label="Предыдущий месяц"
+            >
+              ‹
+            </button>
+            <label style={monthInputLabelStyle}>
+              <span style={monthTitleStyle}>{formatMonthTitle(selectedMonth)}</span>
+              <input
+                type="month"
+                value={selectedMonth}
+                max={currentMonthValue}
+                onChange={event => setSelectedMonth(event.target.value)}
+                style={monthInputStyle}
+                aria-label="Выбрать месяц"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              disabled={!canGoNextMonth}
+              style={{
+                ...monthNavButtonStyle,
+                ...(!canGoNextMonth ? monthNavButtonDisabledStyle : {}),
+              }}
+              aria-label="Следующий месяц"
+            >
+              ›
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="glass" style={categoryCardStyle}>
@@ -248,10 +287,6 @@ export default function CashbackPage() {
         <div className="glass" style={summaryCardStyle}>
           <span style={summaryLabelStyle}>Начислено за месяц</span>
           <strong style={summaryValueStyle}>{formatCashbackMoney(monthTotal)} ₽</strong>
-        </div>
-        <div className="glass" style={summaryCardStyle}>
-          <span style={summaryLabelStyle}>Платежей с кешбэком</span>
-          <strong style={summaryValueStyle}>{monthAccruals.length}</strong>
         </div>
       </div>
 
@@ -428,6 +463,20 @@ function getMonthValue(value) {
   return `${date.getFullYear()}-${month}`;
 }
 
+function shiftMonthValue(monthValue, diff) {
+  const [year, month] = monthValue.split('-').map(Number);
+  const date = new Date(year, month - 1 + diff, 1);
+  return getMonthValue(date);
+}
+
+function formatMonthTitle(monthValue) {
+  const [year, month] = monthValue.split('-').map(Number);
+  return new Date(year, month - 1, 1).toLocaleDateString('ru-RU', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 function getLocalDateKey(date) {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
@@ -494,24 +543,77 @@ const pageHeaderStyle = {
 const monthPickerStyle = {
   display: 'flex',
   alignItems: 'center',
-  gap: '0.75rem',
-  padding: '0.65rem 0.8rem',
+  gap: '0.85rem',
+  padding: '0.55rem',
   border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '12px',
-  background: 'rgba(255,255,255,0.04)',
+  borderRadius: '16px',
+  background: 'rgba(255,255,255,0.045)',
 };
 
 const monthPickerLabelStyle = {
   color: 'rgba(255,255,255,0.48)',
   fontSize: '0.82rem',
+  paddingLeft: '0.35rem',
+};
+
+const monthControlStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.35rem',
+  padding: '0.25rem',
+  border: '1px solid rgba(255,255,255,0.07)',
+  borderRadius: '12px',
+  background: 'rgba(0,0,0,0.18)',
+};
+
+const monthNavButtonStyle = {
+  width: '30px',
+  height: '30px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '10px',
+  background: 'rgba(255,255,255,0.06)',
+  color: '#fff',
+  cursor: 'pointer',
+  fontSize: '1.1rem',
+  lineHeight: 1,
+};
+
+const monthNavButtonDisabledStyle = {
+  opacity: 0.35,
+  cursor: 'not-allowed',
+};
+
+const monthInputLabelStyle = {
+  position: 'relative',
+  minWidth: '154px',
+  height: '30px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0 0.65rem',
+  borderRadius: '10px',
+  color: '#fff',
+  cursor: 'pointer',
+};
+
+const monthTitleStyle = {
+  color: '#fff',
+  fontSize: '0.88rem',
+  fontWeight: 750,
+  textTransform: 'capitalize',
 };
 
 const monthInputStyle = {
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
   border: 0,
-  outline: 'none',
-  background: 'transparent',
-  color: '#fff',
-  fontWeight: 700,
+  opacity: 0,
+  cursor: 'pointer',
 };
 
 const categoryCardStyle = {
@@ -668,9 +770,19 @@ const paymentMetaStyle = {
 };
 
 const cashbackAmountStyle = {
-  color: '#5eead4',
-  fontSize: '1rem',
-  fontWeight: 800,
+  minWidth: '42px',
+  height: '30px',
+  padding: '0 0.65rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid rgba(251,191,36,0.42)',
+  borderRadius: '999px',
+  background: 'rgba(251,191,36,0.14)',
+  color: '#facc15',
+  fontSize: '0.78rem',
+  fontWeight: 850,
+  lineHeight: 1,
   whiteSpace: 'nowrap',
 };
 
