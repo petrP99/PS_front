@@ -23,6 +23,173 @@ const navItems = [
   { to: '/admin', icon: '⚙️', label: 'Админ' },
 ];
 
+const appShellStyle = isHomePage => ({
+  display: 'flex',
+  minHeight: '100vh',
+  position: 'relative',
+  zIndex: 1,
+  overflow: 'hidden',
+  background: isHomePage
+    ? '#252932'
+    : 'linear-gradient(135deg, #EEF1F5 0%, #F7F3FB 48%, #E9EEF5 100%)',
+});
+
+const homeBackgroundOverlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  width: '100vw',
+  height: '100vh',
+  background: 'radial-gradient(circle at 18% 12%, rgba(118,126,140,0.34), transparent 34%), radial-gradient(circle at 82% 24%, rgba(78,84,96,0.3), transparent 32%), linear-gradient(135deg, #3E444F 0%, #2B3039 42%, #20242C 100%)',
+  pointerEvents: 'none',
+  zIndex: 0,
+};
+
+const animatedBackdropStyle = isHomePage => ({
+  position: 'fixed',
+  inset: 0,
+  zIndex: 0,
+  pointerEvents: 'none',
+  background: isHomePage
+    ? 'linear-gradient(180deg, rgba(255,255,255,0.055), transparent 46%)'
+    : 'linear-gradient(120deg, rgba(255,255,255,0.55), rgba(168,85,247,0.08), rgba(110,231,183,0.09))',
+  backgroundSize: '220% 220%',
+  animation: isHomePage ? 'none' : 'gradientShift 12s ease infinite',
+});
+
+const animatedOrbStyle = (top, left, color, animation) => ({
+  position: 'fixed',
+  top,
+  left,
+  width: '360px',
+  height: '360px',
+  borderRadius: '50%',
+  background: `radial-gradient(circle, ${color}32 0%, ${color}16 34%, transparent 68%)`,
+  filter: 'blur(18px)',
+  opacity: 0.8,
+  animation,
+  pointerEvents: 'none',
+  zIndex: 0,
+});
+
+const sidebarStyle = isHomePage => ({
+  width: '260px',
+  background: isHomePage ? 'rgba(49,54,66,0.96)' : 'rgba(251,247,255,0.86)',
+  backdropFilter: 'blur(24px)',
+  borderRight: isHomePage ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(229,231,235,0.9)',
+  boxShadow: isHomePage ? '18px 0 36px rgba(0,0,0,0.16)' : '18px 0 45px rgba(91,63,141,0.08)',
+  padding: '2rem 0',
+  display: 'flex',
+  flexDirection: 'column',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  bottom: 0,
+  zIndex: 100,
+});
+
+const logoLinkStyle = isHomePage => ({
+  color: isHomePage ? '#F4F7FB' : '#1F2937',
+  textDecoration: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+});
+
+const logoIconStyle = isHomePage => ({
+  width: '42px',
+  height: '42px',
+  background: isHomePage
+    ? 'linear-gradient(135deg, #6B7280, #D1D5DB)'
+    : 'linear-gradient(135deg, #A855F7, #C084FC, #6EE7B7)',
+  backgroundSize: '200% 200%',
+  animation: isHomePage ? 'none' : 'gradientShift 4s ease infinite',
+  borderRadius: '16px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '1.3rem',
+  color: '#fff',
+  boxShadow: isHomePage
+    ? '0 14px 24px rgba(0,0,0,0.18)'
+    : '0 16px 28px rgba(168,85,247,0.28)',
+});
+
+const logoTextStyle = isHomePage => ({
+  fontSize: '1.15rem',
+  fontWeight: 800,
+  letterSpacing: 0,
+  color: isHomePage ? '#F4F7FB' : '#1F2937',
+});
+
+const activeNavDotStyle = {
+  marginLeft: 'auto',
+  width: '6px',
+  height: '6px',
+  background: '#fff',
+  borderRadius: '50%',
+  boxShadow: '0 0 10px rgba(255,255,255,0.8)',
+};
+
+const headerStyle = isHomePage => ({
+  position: 'fixed',
+  top: '1.25rem',
+  left: '282px',
+  right: '1.5rem',
+  height: '76px',
+  zIndex: 200,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '1.5rem',
+  padding: '0 1.5rem',
+  background: isHomePage ? 'rgba(49,54,66,0.92)' : 'rgba(255,255,255,0.84)',
+  backdropFilter: 'blur(24px)',
+  border: isHomePage ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(229,231,235,0.95)',
+  borderRadius: '18px',
+  boxShadow: isHomePage ? '0 14px 30px rgba(0,0,0,0.16)' : '0 18px 44px rgba(31,41,55,0.08)',
+});
+
+const headerLabelStyle = isHomePage => ({
+  color: isHomePage ? 'rgba(244,247,251,0.52)' : '#8B8FA3',
+  fontSize: '0.7rem',
+  textTransform: 'uppercase',
+  letterSpacing: 0,
+});
+
+const headerDividerStyle = isHomePage => ({
+  width: '1px',
+  height: '34px',
+  margin: '0 0.25rem',
+  background: isHomePage ? 'rgba(255,255,255,0.08)' : 'rgba(31,41,55,0.08)',
+});
+
+const profileButtonStyle = isHomePage => ({
+  width: '42px',
+  height: '42px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '16px',
+  background: isHomePage
+    ? 'linear-gradient(135deg, #6B7280, #D1D5DB)'
+    : 'linear-gradient(135deg, #A855F7, #C084FC)',
+  color: '#fff',
+  textDecoration: 'none',
+  fontWeight: 800,
+  boxShadow: isHomePage
+    ? '0 12px 24px rgba(0,0,0,0.16)'
+    : '0 12px 26px rgba(168,85,247,0.24)',
+});
+
+const mainStyle = user => ({
+  marginLeft: user ? '260px' : 0,
+  flex: 1,
+  padding: user ? '118px 2rem 2rem' : '2rem',
+  minHeight: '100vh',
+  position: 'relative',
+  zIndex: 1,
+});
+
 export default function Layout({ children }) {
   const { user } = useAuth();
   const location = useLocation();
@@ -78,35 +245,31 @@ export default function Layout({ children }) {
     form.submit();
   };
 
+  const isHomePage = location.pathname === '/home';
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
-      <aside style={{
-          width: '260px',
-          background: 'rgba(15,15,25,0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRight: '1px solid rgba(255,255,255,0.06)',
-          padding: '2rem 0',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'fixed',
-          top: 0, left: 0, bottom: 0,
-          zIndex: 100,
-        }}>
+    <div style={appShellStyle(isHomePage)}>
+      {isHomePage && (
+        <>
+          <div style={homeBackgroundOverlayStyle} />
+        </>
+      )}
+      <div style={animatedBackdropStyle(isHomePage)} />
+      {!isHomePage && (
+        <>
+          <div style={animatedOrbStyle('12%', '72%', '#A855F7', 'float 9s ease-in-out infinite')} />
+          <div style={animatedOrbStyle('72%', '8%', '#6EE7B7', 'float 11s ease-in-out infinite reverse')} />
+          <div style={animatedOrbStyle('48%', '48%', '#C084FC', 'float 13s ease-in-out infinite')} />
+        </>
+      )}
+
+      <aside style={sidebarStyle(isHomePage)}>
           {/* Логотип */}
           <div style={{ padding: '0 1.5rem', marginBottom: '2.5rem' }}>
-            <Link to="/home" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{
-                width: '42px', height: '42px',
-                background: 'linear-gradient(135deg, #6366f1, #c084fc, #f472b6)',
-                backgroundSize: '200% 200%',
-                animation: 'gradientShift 4s ease infinite',
-                borderRadius: '14px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.3rem',
-                boxShadow: '0 0 20px rgba(99,102,241,0.3)',
-              }}>✦</div>
-              <span style={{ fontSize: '1.15rem', fontWeight: 700, letterSpacing: '-0.5px' }}>
-                Pay<span style={{ color: '#818cf8' }}>Flow</span>
+            <Link to="/home" style={logoLinkStyle(isHomePage)}>
+              <div style={logoIconStyle(isHomePage)}>✦</div>
+              <span style={logoTextStyle(isHomePage)}>
+                Pay<span style={{ color: isHomePage ? '#D1D5DB' : '#A855F7' }}>Flow</span>
               </span>
             </Link>
           </div>
@@ -119,17 +282,25 @@ export default function Layout({ children }) {
                 <Link key={item.to} to={item.to} style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
                   padding: '0.85rem 1.5rem', margin: '0 0.75rem 0.25rem',
-                  color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
+                  color: isActive ? '#fff' : isHomePage ? 'rgba(226,232,240,0.58)' : '#8B8FA3',
                   textDecoration: 'none', fontSize: '0.9rem', fontWeight: isActive ? 600 : 400,
-                  background: isActive ? 'rgba(99,102,241,0.1)' : 'transparent',
-                  borderRadius: '12px',
-                  border: isActive ? '1px solid rgba(99,102,241,0.2)' : '1px solid transparent',
+                  background: isActive
+                    ? isHomePage
+                      ? 'rgba(255,255,255,0.1)'
+                      : 'linear-gradient(135deg, #A855F7, #8B5CF6)'
+                    : 'transparent',
+                  borderRadius: '14px',
+                  border: isActive
+                    ? isHomePage
+                      ? '1px solid rgba(255,255,255,0.12)'
+                      : '1px solid rgba(34,211,238,0.22)'
+                    : '1px solid transparent',
                   transition: 'all 0.3s',
-                  backdropFilter: isActive ? 'blur(10px)' : 'none',
+                  boxShadow: isActive && !isHomePage ? '0 12px 26px rgba(34,211,238,0.22)' : 'none',
                 }}>
                   <span style={{ fontSize: '1.1rem', opacity: isActive ? 1 : 0.6 }}>{item.icon}</span>
                   <span>{item.label}</span>
-                  {isActive && <span style={{ marginLeft: 'auto', width: '6px', height: '6px', background: '#818cf8', borderRadius: '50%', boxShadow: '0 0 10px #818cf8' }} />}
+                  {isActive && <span style={activeNavDotStyle} />}
                 </Link>
               );
             })}
@@ -138,22 +309,7 @@ export default function Layout({ children }) {
         </aside>
 
       {user && (
-        <header style={{
-          position: 'fixed',
-          top: 0,
-          left: '260px',
-          right: 0,
-          height: '76px',
-          zIndex: 200,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1.5rem',
-          padding: '0 2rem',
-          background: 'rgba(15,15,25,0.9)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}>
+        <header style={headerStyle(isHomePage)}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             <button
               type="button"
@@ -164,12 +320,12 @@ export default function Layout({ children }) {
                 padding: 0,
                 border: 0,
                 background: 'transparent',
-                color: '#fff',
+                color: isHomePage ? '#E5F7FF' : '#1F2937',
                 cursor: balanceLoading ? 'wait' : 'pointer',
                 textAlign: 'left',
               }}
             >
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <div style={headerLabelStyle(isHomePage)}>
                 Общий баланс
               </div>
               <strong style={balanceGradientStyle}>
@@ -183,51 +339,33 @@ export default function Layout({ children }) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={rateStyle}>
+            <div style={rateStyle(isHomePage)}>
               <CurrencyFlag currency="USD" />
-              <span style={rateLabelStyle}>USD</span>
+              <span style={rateLabelStyle(isHomePage)}>USD</span>
               <strong>{rates?.USD ? formatMoney(rates.USD) : '—'}</strong>
             </div>
-            <div style={rateStyle}>
+            <div style={rateStyle(isHomePage)}>
               <CurrencyFlag currency="CNY" />
-              <span style={rateLabelStyle}>CNY</span>
+              <span style={rateLabelStyle(isHomePage)}>CNY</span>
               <strong>{rates?.CNY ? formatMoney(rates.CNY) : '—'}</strong>
             </div>
-            <div style={{ width: '1px', height: '34px', margin: '0 0.25rem', background: 'rgba(255,255,255,0.08)' }} />
+            <div style={headerDividerStyle(isHomePage)} />
             <NotificationBell />
             <Link
               to="/profile"
               title="Профиль"
-              style={{
-                width: '42px',
-                height: '42px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1, #c084fc)',
-                color: '#fff',
-                textDecoration: 'none',
-                fontWeight: 700,
-              }}
+              style={profileButtonStyle(isHomePage)}
             >
               {(user.firstName || user.preferred_username || 'U')[0].toUpperCase()}
             </Link>
-            <button type="button" onClick={handleLogout} style={logoutButtonStyle}>
+            <button type="button" onClick={handleLogout} style={logoutButtonStyle(isHomePage)}>
               Выйти
             </button>
           </div>
         </header>
       )}
 
-      <main style={{
-        marginLeft: user ? '260px' : 0,
-        flex: 1,
-        padding: user ? '108px 2rem 2rem' : '2rem',
-        minHeight: '100vh',
-        position: 'relative',
-        zIndex: 1,
-      }}>
+      <main style={mainStyle(user)}>
         <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fadeIn 0.5s ease-out' }}>
           {children}
         </div>
@@ -274,47 +412,48 @@ function CurrencyFlag({ currency }) {
   );
 }
 
-const logoutButtonStyle = {
+const logoutButtonStyle = isHomePage => ({
   padding: '0.65rem 1rem',
-  border: '1px solid rgba(244,63,94,0.28)',
-  borderRadius: '10px',
-  background: 'rgba(244,63,94,0.1)',
-  color: '#fda4af',
+  border: isHomePage ? '1px solid rgba(244,63,94,0.24)' : '1px solid rgba(244,63,94,0.16)',
+  borderRadius: '14px',
+  background: isHomePage ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)',
+  color: isHomePage ? '#FDA4AF' : '#E11D48',
   cursor: 'pointer',
-  fontWeight: 600,
-};
+  fontWeight: 700,
+});
 
 const flagStyle = {
   width: '24px',
   height: '16px',
   flexShrink: 0,
   borderRadius: '3px',
-  boxShadow: '0 0 0 1px rgba(255,255,255,0.16)',
+  boxShadow: '0 0 0 1px rgba(31,41,55,0.12)',
 };
 
 const balanceGradientStyle = {
   display: 'block',
   marginTop: '0.2rem',
   fontSize: '1.15rem',
-  background: 'linear-gradient(120deg, #22c55e, #86efac, #10b981, #bbf7d0)',
+  background: 'linear-gradient(120deg, #86EFAC, #22C55E)',
   backgroundSize: '250% 250%',
   animation: 'gradientShift 4s ease infinite',
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
 };
 
-const rateStyle = {
+const rateStyle = isHomePage => ({
   display: 'flex',
   alignItems: 'center',
   gap: '0.45rem',
   padding: '0.5rem 0.7rem',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: '10px',
-  background: 'rgba(255,255,255,0.035)',
+  border: isHomePage ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(229,231,235,0.95)',
+  borderRadius: '14px',
+  background: isHomePage ? 'rgba(62,68,80,0.82)' : 'rgba(255,255,255,0.72)',
   fontSize: '0.82rem',
-};
+  color: isHomePage ? '#F4F7FB' : '#1F2937',
+});
 
-const rateLabelStyle = {
-  color: 'rgba(255,255,255,0.45)',
+const rateLabelStyle = isHomePage => ({
+  color: isHomePage ? 'rgba(226,232,240,0.52)' : '#8B8FA3',
   fontSize: '0.72rem',
-};
+});
