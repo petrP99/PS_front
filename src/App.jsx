@@ -22,6 +22,7 @@ import ProfilePage from './pages/ProfilePage';
 import PaymentMethodPage from './pages/PaymentMethodPage';
 import PaymentPage from './pages/PaymentPage';
 import PaymentHistoryDetailsPage from './pages/PaymentHistoryDetailsPage';
+import CashbackPage from './pages/CashbackPage';
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/replenishment" element={<ProtectedRoute><ReplenishmentPage /></ProtectedRoute>} />
                 <Route path="/payments" element={<ProtectedRoute><PaymentMethodPage /></ProtectedRoute>} />
                 <Route path="/payments/:type" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
+                <Route path="/cashback" element={<ProtectedRoute><CashbackPage /></ProtectedRoute>} />
                 <Route path="/accounts" element={<ProtectedRoute><MyAccountsPage /></ProtectedRoute>} />
                 <Route path="/accounts/:id/requisites" element={<ProtectedRoute><AccountRequisitesPage /></ProtectedRoute>} />
                 <Route path="/accounts/:id" element={<ProtectedRoute><AccountDetailsPage /></ProtectedRoute>} />

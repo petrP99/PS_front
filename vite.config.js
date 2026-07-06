@@ -9,6 +9,10 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to BFF
       '/api': bffProxyTarget,
+      '/ws': {
+        target: bffProxyTarget,
+        ws: true
+      },
       '/oauth2': bffProxyTarget,
       '/login': bffProxyTarget,
       '/logout': bffProxyTarget

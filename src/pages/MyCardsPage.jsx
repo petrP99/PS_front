@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createCard, getMyAccounts, getMyCards, blockCard } from '../api';
 import CardNumber from '../components/CardNumber';
@@ -21,7 +21,7 @@ export default function MyCardsPage() {
   const [newCardData, setNewCardData] = useState({
     name: '',
     isPremium: false,
-    accountId: requestedAccountId,
+    accountId: '',
   });
   const [toast, setToast] = useState({ message: '', visible: false });
   const currencyFlags = {
@@ -34,7 +34,11 @@ export default function MyCardsPage() {
     USD: { label: 'Доллары', sign: '$' },
     CNY: { label: 'Юани', sign: '¥' },
   };
-  const selectedAccount = accounts.find(account => account.id === newCardData.accountId);
+  const activeAccounts = useMemo(
+    () => accounts.filter(account => account.status === 'ACTIVE'),
+    [accounts]
+  );
+  const selectedAccount = activeAccounts.find(account => account.id === newCardData.accountId);
   const accountsById = new Map(accounts.map(account => [account.id, account]));
 
   useEffect(() => {
@@ -43,13 +47,13 @@ export default function MyCardsPage() {
   }, []);
 
   useEffect(() => {
-    if (requestedAccountId && accounts.some(account => account.id === requestedAccountId)) {
+    if (requestedAccountId && activeAccounts.some(account => account.id === requestedAccountId)) {
       setNewCardData(data => ({ ...data, accountId: requestedAccountId }));
       setShowCreateForm(true);
     } else if (createRequested) {
       setShowCreateForm(true);
     }
-  }, [accounts, createRequested, requestedAccountId]);
+  }, [activeAccounts, createRequested, requestedAccountId]);
 
   useEffect(() => {
     if (!creationSucceeded) return undefined;
@@ -101,7 +105,7 @@ export default function MyCardsPage() {
 
   const handleCreateCard = async () => {
     if (!selectedAccount) {
-      showToast('Выберите счёт для привязки карты');
+      showToast('Выберите активный счёт для привязки карты');
       return;
     }
 
@@ -185,8 +189,8 @@ export default function MyCardsPage() {
                   onChange={e => setNewCardData({ ...newCardData, accountId: e.target.value })}
                   required
                 >
-                  <option value="">Выберите счёт</option>
-                  {accounts.map(account => (
+                  <option value="">{activeAccounts.length ? 'Выберите счёт' : 'Нет активных счетов'}</option>
+                  {activeAccounts.map(account => (
                     <option key={account.id} value={account.id}>
                       {account.name || `Счёт ${account.id.slice(-4)}`} — {account.currency}
                     </option>
@@ -243,9 +247,9 @@ export default function MyCardsPage() {
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button 
               className="glass" 
-              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: newCardData.accountId ? 'pointer' : 'not-allowed', opacity: newCardData.accountId ? 1 : 0.5, color: '#fff' }}
+              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: selectedAccount ? 'pointer' : 'not-allowed', opacity: selectedAccount ? 1 : 0.5, color: '#fff' }}
               onClick={handleCreateCard}
-              disabled={!newCardData.accountId}
+              disabled={!selectedAccount}
             >
               Создать
             </button>

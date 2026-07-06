@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { getCurrencyRates, getMyAccounts } from '../api';
+import NotificationBell from './NotificationBell';
 
 const currencies = ['RUB', 'USD', 'CNY'];
 const currencySigns = {
@@ -17,6 +18,7 @@ const navItems = [
   { to: '/transfers', icon: '⚡', label: 'Переводы' },
   { to: '/replenishment', icon: '💰', label: 'Пополнения' },
   { to: '/payments', icon: '🧾', label: 'Платежи' },
+  { to: '/cashback', icon: '✨', label: 'Кешбэк' },
   { to: '/history', icon: '📊', label: 'История' },
   { to: '/admin', icon: '⚙️', label: 'Админ' },
 ];
@@ -142,7 +144,7 @@ export default function Layout({ children }) {
           left: '260px',
           right: 0,
           height: '76px',
-          zIndex: 90,
+          zIndex: 200,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -192,6 +194,7 @@ export default function Layout({ children }) {
               <strong>{rates?.CNY ? formatMoney(rates.CNY) : '—'}</strong>
             </div>
             <div style={{ width: '1px', height: '34px', margin: '0 0.25rem', background: 'rgba(255,255,255,0.08)' }} />
+            <NotificationBell />
             <Link
               to="/profile"
               title="Профиль"

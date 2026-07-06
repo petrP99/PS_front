@@ -57,6 +57,28 @@ export const apiFetch = async (endpoint, options = {}) => {
 
 export const getProfile = () => apiFetch('/client/profile');
 
+// Notifications
+export const getUnreadNotificationsCount = async () => {
+  const response = await apiFetch('/notifications/unread/count');
+  if (typeof response === 'number') {
+    return response;
+  }
+  return Number(response?.count || 0);
+};
+
+export const getLatestUnreadNotifications = () =>
+  apiFetch('/notifications/unread/latest');
+
+export const readNotification = (id) =>
+  apiFetch(`/notifications/${id}/read`, {
+    method: 'POST'
+  });
+
+export const readAllNotifications = () =>
+  apiFetch('/notifications/read', {
+    method: 'POST'
+  });
+
 // Cards
 export const createCard = ({ name, currency, isPremium, accountId }) =>
   apiFetch('/cards/create', {
@@ -100,6 +122,25 @@ export const getPayments = () =>
 
 export const getPaymentById = (id) =>
   apiFetch(`/payments/${id}`);
+
+// Cashback
+export const getCashbackAccruals = () =>
+  apiFetch('/cashback/accruals/my');
+
+export const getCashbackByPaymentId = (id) =>
+  apiFetch(`/cashback/payments/${id}`);
+
+export const getCurrentCashbackCategories = () =>
+  apiFetch('/cashback/categories/current');
+
+export const getAvailableCashbackCategories = () =>
+  apiFetch('/cashback/categories/available');
+
+export const selectCashbackCategories = (recipients) =>
+  apiFetch('/cashback/categories', {
+    method: 'POST',
+    body: JSON.stringify({ recipients })
+  });
 
 // Accounts
 export const getMyAccounts = () =>

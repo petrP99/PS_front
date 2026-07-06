@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getTransferById } from '../api';
+import { bffWsUrl } from '../config';
 
 const terminalStatuses = new Set(['SUCCESS', 'FAILED']);
 
@@ -26,7 +27,7 @@ export default function TransferStatusPage() {
       setError(
         requestError.status === 404
           ? 'Перевод не найден или недоступен'
-          : 'Не удалось обновить статус. Повторим попытку автоматически'
+          : 'Не удалось обновить статус. Можно проверить статус вручную'
       );
       return null;
     } finally {
@@ -41,18 +42,56 @@ export default function TransferStatusPage() {
   useEffect(() => {
     if (terminalStatuses.has(transfer?.status)) return undefined;
 
+    let socket;
+    let reconnectTimer;
+    let closedByComponent = false;
+
+    const connect = () => {
+      socket = new WebSocket(bffWsUrl(`/ws/transfers/${id}`));
+
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type !== 'TRANSFER_STATUS_CHANGED' || !payload.transfer) {
+            return;
+          }
+
+          setTransfer(payload.transfer);
+          setError('');
+        } catch (parseError) {
+          setError('Не удалось обработать обновление статуса');
+        }
+      };
+
+      socket.onclose = () => {
+        if (!closedByComponent && !terminalStatuses.has(transfer?.status)) {
+          reconnectTimer = window.setTimeout(connect, 5000);
+        }
+      };
+
+      socket.onerror = () => {
+        setError('Соединение со статусом перевода временно недоступно');
+        socket.close();
+      };
+    };
+
+    connect();
+
+    return () => {
+      closedByComponent = true;
+      window.clearTimeout(reconnectTimer);
+      socket?.close();
+    };
+  }, [id, transfer?.status]);
+
+  useEffect(() => {
+    if (terminalStatuses.has(transfer?.status)) return undefined;
+
     const timer = window.setInterval(() => {
       setSeconds(current => Math.max(0, current - 1));
     }, 1000);
     return () => window.clearInterval(timer);
   }, [transfer?.status]);
-
-  useEffect(() => {
-    if (terminalStatuses.has(transfer?.status)) return undefined;
-
-    const polling = window.setInterval(refreshStatus, 1000);
-    return () => window.clearInterval(polling);
-  }, [refreshStatus, transfer?.status]);
 
   const status = transfer?.status || 'IN_PROGRESS';
   const isSuccess = status === 'SUCCESS';

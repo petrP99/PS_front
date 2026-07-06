@@ -58,9 +58,13 @@ export default function PaymentPage() {
     const loadAccounts = async () => {
       try {
         const response = await getMyAccounts();
-        const activeAccounts = response.filter(account => account.status === 'ACTIVE');
-        setAccounts(activeAccounts);
-        setAccountId(activeAccounts[0]?.id || '');
+        const paymentAccounts = response.filter(account => (
+          account.status === 'ACTIVE'
+          && account.currency === 'RUB'
+          && Number(account.balance) > 0
+        ));
+        setAccounts(paymentAccounts);
+        setAccountId(paymentAccounts[0]?.id || '');
       } catch (error) {
         setToast({ message: error.message || 'Не удалось загрузить счета', visible: true });
       } finally {
@@ -145,7 +149,7 @@ export default function PaymentPage() {
         </div>
       ) : accounts.length === 0 ? (
         <div className="glass" style={emptyCardStyle}>
-          <h2 style={{ marginBottom: '0.75rem' }}>Нет активных счетов</h2>
+          <h2 style={{ marginBottom: '0.75rem' }}>Нет рублевых счетов с положительным балансом</h2>
           <button type="button" onClick={() => navigate('/accounts')} style={primaryButtonStyle}>
             Перейти к счетам
           </button>

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getCurrencyRates, getMyAccounts } from '../api';
+import { getCashbackAccruals, getCurrencyRates, getMyAccounts } from '../api';
 
 const currencies = ['RUB', 'USD', 'CNY'];
 const currencySigns = {
@@ -18,6 +18,9 @@ export default function HomePage() {
   const [balanceCurrency, setBalanceCurrency] = useState('RUB');
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balanceError, setBalanceError] = useState(false);
+  const [cashbackAccruals, setCashbackAccruals] = useState([]);
+  const [cashbackLoading, setCashbackLoading] = useState(true);
+  const [cashbackError, setCashbackError] = useState(false);
 
   useEffect(() => {
     const loadBalance = async () => {
@@ -39,11 +42,32 @@ export default function HomePage() {
     loadBalance();
   }, []);
 
+  useEffect(() => {
+    const loadCashback = async () => {
+      try {
+        const result = await getCashbackAccruals();
+        setCashbackAccruals(Array.isArray(result) ? result : []);
+      } catch (error) {
+        console.error('Ошибка загрузки кешбэка:', error);
+        setCashbackError(true);
+      } finally {
+        setCashbackLoading(false);
+      }
+    };
+
+    loadCashback();
+  }, []);
+
   const totalBalance = rates
     ? accounts.reduce((totalRub, account) => (
         totalRub + Number(account.balance || 0) * Number(rates[account.currency])
       ), 0) / Number(rates[balanceCurrency])
     : null;
+
+  const currentMonthCashback = useMemo(
+    () => calculateCurrentMonthCashback(cashbackAccruals, rates),
+    [cashbackAccruals, rates]
+  );
 
   const switchBalanceCurrency = () => {
     setBalanceCurrency(current => {
@@ -85,36 +109,54 @@ export default function HomePage() {
             borderRadius: '50%',
             animation: 'float 6s ease-in-out infinite',
           }} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <span style={{
-              fontSize: '0.8rem',
-              color: 'rgba(255,255,255,0.4)',
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-            }}>
-              Ваш баланс
-            </span>
+          <div style={homeSummaryGridStyle}>
+            <div style={{ minWidth: 0 }}>
+              <span style={{
+                fontSize: '0.8rem',
+                color: 'rgba(255,255,255,0.4)',
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+              }}>
+                Ваш баланс
+              </span>
+              <button
+                type="button"
+                onClick={switchBalanceCurrency}
+                disabled={balanceLoading || balanceError}
+                title="Нажмите, чтобы изменить валюту"
+                style={homeBalanceStyle}
+              >
+                {balanceLoading
+                  ? 'Загрузка...'
+                  : balanceError || !Number.isFinite(totalBalance)
+                    ? 'Не удалось рассчитать'
+                    : `${formatMoney(totalBalance)} ${currencySigns[balanceCurrency]}`}
+              </button>
+              {!balanceLoading && !balanceError && (
+                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
+                  Нажмите на баланс, чтобы изменить валюту
+                </div>
+              )}
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
+                {user.firstName || user.preferred_username} · {new Date().toLocaleDateString('ru-RU')}
+              </p>
+            </div>
+
             <button
               type="button"
-              onClick={switchBalanceCurrency}
-              disabled={balanceLoading || balanceError}
-              title="Нажмите, чтобы изменить валюту"
-              style={homeBalanceStyle}
+              onClick={() => navigate('/cashback')}
+              style={cashbackSummaryStyle}
             >
-              {balanceLoading
-                ? 'Загрузка...'
-                : balanceError || !Number.isFinite(totalBalance)
-                  ? 'Не удалось рассчитать'
-                  : `${formatMoney(totalBalance)} ${currencySigns[balanceCurrency]}`}
+              <span style={cashbackLabelStyle}>Кешбэк за текущий месяц</span>
+              <strong style={cashbackValueStyle}>
+                {cashbackLoading
+                  ? 'Загрузка...'
+                  : cashbackError || currentMonthCashback === null
+                    ? 'Недоступен'
+                    : `${formatCashbackMoney(currentMonthCashback)} руб`}
+              </strong>
+              <span style={cashbackHintStyle}>Открыть начисления</span>
             </button>
-            {!balanceLoading && !balanceError && (
-              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                Нажмите на баланс, чтобы изменить валюту
-              </div>
-            )}
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
-              {user.firstName || user.preferred_username} · {new Date().toLocaleDateString('ru-RU')}
-            </p>
           </div>
         </div>
       )}
@@ -180,6 +222,76 @@ function formatMoney(value) {
     maximumFractionDigits: 2,
   });
 }
+
+function formatCashbackMoney(value) {
+  return Math.round(Number(value || 0)).toLocaleString('ru-RU', {
+    maximumFractionDigits: 0,
+  });
+}
+
+function calculateCurrentMonthCashback(accruals, rates) {
+  if (!rates) return null;
+
+  const now = new Date();
+  return accruals.reduce((total, accrual) => {
+    const paymentDate = new Date(accrual.paymentTime);
+    if (
+      paymentDate.getFullYear() !== now.getFullYear()
+      || paymentDate.getMonth() !== now.getMonth()
+    ) {
+      return total;
+    }
+
+    const amount = Number(accrual.cashbackAmount || 0);
+    const rate = Number(rates[accrual.currency] || 1);
+    if (!Number.isFinite(amount) || !Number.isFinite(rate)) return total;
+    return total + amount * rate;
+  }, 0);
+}
+
+const homeSummaryGridStyle = {
+  position: 'relative',
+  zIndex: 1,
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+  gap: '1.5rem',
+  alignItems: 'stretch',
+};
+
+const cashbackSummaryStyle = {
+  minHeight: '164px',
+  padding: '1.35rem',
+  border: '1px solid rgba(45,212,191,0.24)',
+  borderRadius: '18px',
+  background: 'linear-gradient(135deg, rgba(20,184,166,0.16), rgba(99,102,241,0.12))',
+  color: '#fff',
+  cursor: 'pointer',
+  textAlign: 'left',
+  boxShadow: '0 0 32px rgba(20,184,166,0.12)',
+};
+
+const cashbackLabelStyle = {
+  display: 'block',
+  marginBottom: '0.9rem',
+  color: 'rgba(255,255,255,0.5)',
+  fontSize: '0.78rem',
+  fontWeight: 700,
+  letterSpacing: '0.7px',
+  textTransform: 'uppercase',
+};
+
+const cashbackValueStyle = {
+  display: 'block',
+  marginBottom: '0.65rem',
+  color: '#99f6e4',
+  fontSize: '1.6rem',
+  lineHeight: 1.15,
+};
+
+const cashbackHintStyle = {
+  color: 'rgba(255,255,255,0.42)',
+  fontSize: '0.82rem',
+};
 
 const homeBalanceStyle = {
   display: 'block',

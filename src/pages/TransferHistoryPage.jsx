@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  getCashbackAccruals,
   getCurrencyRates,
   getMyAccounts,
   getPayments,
@@ -15,12 +16,19 @@ const sections = [
   { id: 'replenishments', title: 'Пополнения', description: 'Зачисления на ваши счета' },
 ];
 
+const balanceChartPeriods = [
+  { id: 'day', label: 'День', subtitle: 'Общий баланс в рублях по часам за сегодня' },
+  { id: 'week', label: 'Неделя', subtitle: 'Общий баланс в рублях по дням за последние 7 дней' },
+];
+
 export default function TransferHistoryPage() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('all');
+  const [balanceChartPeriod, setBalanceChartPeriod] = useState('day');
   const [reportNoticeOpen, setReportNoticeOpen] = useState(false);
   const [transfers, setTransfers] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [cashbackAccruals, setCashbackAccruals] = useState([]);
   const [replenishments, setReplenishments] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [rates, setRates] = useState(null);
@@ -30,6 +38,7 @@ export default function TransferHistoryPage() {
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [error, setError] = useState('');
   const [paymentsError, setPaymentsError] = useState('');
+  const [cashbackError, setCashbackError] = useState('');
   const [replenishmentsError, setReplenishmentsError] = useState('');
   const [balanceError, setBalanceError] = useState('');
 
@@ -60,6 +69,18 @@ export default function TransferHistoryPage() {
 
     loadPayments();
 
+    const loadCashback = async () => {
+      try {
+        const result = await getCashbackAccruals();
+        setCashbackAccruals(Array.isArray(result) ? result : []);
+        setCashbackError('');
+      } catch (requestError) {
+        setCashbackError(requestError.message || 'Не удалось загрузить данные кешбэка');
+      }
+    };
+
+    loadCashback();
+
     const loadReplenishments = async () => {
       try {
         const result = await getReplenishments();
@@ -89,8 +110,17 @@ export default function TransferHistoryPage() {
     };
 
     loadBalanceData();
+
+    window.addEventListener('focus', loadCashback);
+    return () => {
+      window.removeEventListener('focus', loadCashback);
+    };
   }, []);
 
+  const cashbackByPaymentId = useMemo(
+    () => buildCashbackByPaymentId(cashbackAccruals),
+    [cashbackAccruals]
+  );
   const groupedTransfers = useMemo(() => groupTransfersByDate(transfers), [transfers]);
   const groupedPayments = useMemo(() => groupPaymentsByDate(payments), [payments]);
   const groupedReplenishments = useMemo(
@@ -98,8 +128,8 @@ export default function TransferHistoryPage() {
     [replenishments]
   );
   const allOperations = useMemo(
-    () => buildAllOperations(transfers, payments, replenishments),
-    [transfers, payments, replenishments]
+    () => buildAllOperations(transfers, payments, replenishments, cashbackByPaymentId),
+    [transfers, payments, replenishments, cashbackByPaymentId]
   );
   const groupedOperations = useMemo(
     () => groupOperationsByDate(allOperations),
@@ -108,8 +138,8 @@ export default function TransferHistoryPage() {
   const allLoading = loading || paymentsLoading || replenishmentsLoading;
   const allErrors = [error, paymentsError, replenishmentsError].filter(Boolean);
   const balanceHistory = useMemo(
-    () => buildBalanceHistory(accounts, rates, transfers, payments, replenishments),
-    [accounts, rates, transfers, payments, replenishments]
+    () => buildBalanceHistory(accounts, rates, transfers, payments, replenishments, balanceChartPeriod),
+    [accounts, rates, transfers, payments, replenishments, balanceChartPeriod]
   );
 
   return (
@@ -135,7 +165,9 @@ export default function TransferHistoryPage() {
       <BalanceHistoryChart
         points={balanceHistory}
         loading={balanceLoading || allLoading}
-        error={balanceError || (allErrors.length > 0 ? 'Недостаточно данных для графика' : '')}
+        error={balanceError}
+        period={balanceChartPeriod}
+        onPeriodChange={setBalanceChartPeriod}
       />
 
       <div style={{
@@ -188,6 +220,11 @@ export default function TransferHistoryPage() {
                   Часть операций не удалось загрузить
                 </div>
               )}
+              {cashbackError && (
+                <div style={historyWarningStyle}>
+                  {cashbackError}
+                </div>
+              )}
               <AllOperationGroups
                 groups={groupedOperations}
                 onSelect={operation => operation.path && navigate(operation.path)}
@@ -202,10 +239,18 @@ export default function TransferHistoryPage() {
           ) : payments.length === 0 ? (
             <EmptyState>История платежей пуста</EmptyState>
           ) : (
-            <PaymentGroups
-              groups={groupedPayments}
-              onSelect={payment => navigate(`/history/payments/${payment.id}`)}
-            />
+            <>
+              {cashbackError && (
+                <div style={historyWarningStyle}>
+                  {cashbackError}
+                </div>
+              )}
+              <PaymentGroups
+                groups={groupedPayments}
+                cashbackByPaymentId={cashbackByPaymentId}
+                onSelect={payment => navigate(`/history/payments/${payment.id}`)}
+              />
+            </>
           )
         ) : activeSection === 'replenishments' ? (
           replenishmentsLoading ? (
@@ -315,10 +360,33 @@ export default function TransferHistoryPage() {
   );
 }
 
-function BalanceHistoryChart({ points, loading, error }) {
+function BalanceHistoryChart({ points, loading, error, period, onPeriodChange }) {
+  const activePeriod = balanceChartPeriods.find(item => item.id === period) || balanceChartPeriods[0];
+  const header = (
+    <div style={chartHeaderStyle}>
+      <div>
+        <h2 style={chartTitleStyle}>Динамика баланса</h2>
+        <p style={chartSubtitleStyle}>{activePeriod.subtitle}</p>
+      </div>
+      <div style={chartPeriodToggleStyle} aria-label="Период графика баланса">
+        {balanceChartPeriods.map(item => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onPeriodChange(item.id)}
+            style={getChartPeriodButtonStyle(item.id === period)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="glass" style={chartCardStyle}>
+        {header}
         <EmptyState>Рассчитываем динамику баланса...</EmptyState>
       </div>
     );
@@ -327,7 +395,7 @@ function BalanceHistoryChart({ points, loading, error }) {
   if (error || points.length === 0) {
     return (
       <div className="glass" style={chartCardStyle}>
-        <h2 style={chartTitleStyle}>Динамика баланса</h2>
+        {header}
         <div style={{ color: '#fda4af', padding: '2rem 0', textAlign: 'center' }}>
           {error || 'Недостаточно данных для построения графика'}
         </div>
@@ -363,8 +431,7 @@ function BalanceHistoryChart({ points, loading, error }) {
   ].join(' ');
   const currentBalance = values[values.length - 1];
   const balanceChange = currentBalance - values[0];
-  const labelIndexes = [0, 7, 14, 21, points.length - 1]
-    .filter((index, position, indexes) => index < points.length && indexes.indexOf(index) === position);
+  const labelIndexes = getChartLabelIndexes(points.length);
   const yLabels = [maxValue, minValue + range / 2, minValue];
 
   return (
@@ -372,18 +439,32 @@ function BalanceHistoryChart({ points, loading, error }) {
       <div style={chartHeaderStyle}>
         <div>
           <h2 style={chartTitleStyle}>Динамика баланса</h2>
-          <p style={chartSubtitleStyle}>Общий баланс в рублях за последние 30 дней</p>
+          <p style={chartSubtitleStyle}>{activePeriod.subtitle}</p>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <strong style={{ display: 'block', fontSize: '1.25rem' }}>
-            {formatMoney(currentBalance)} ₽
-          </strong>
-          <span style={{
-            color: balanceChange >= 0 ? '#4ade80' : '#f87171',
-            fontSize: '0.82rem',
-          }}>
-            {balanceChange >= 0 ? '+' : '−'}{formatMoney(Math.abs(balanceChange))} ₽ за период
-          </span>
+        <div style={chartHeaderRightStyle}>
+          <div style={chartPeriodToggleStyle} aria-label="Период графика баланса">
+            {balanceChartPeriods.map(item => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onPeriodChange(item.id)}
+                style={getChartPeriodButtonStyle(item.id === period)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <strong style={{ display: 'block', fontSize: '1.25rem' }}>
+              {formatMoney(currentBalance)} ₽
+            </strong>
+            <span style={{
+              color: balanceChange >= 0 ? '#4ade80' : '#f87171',
+              fontSize: '0.82rem',
+            }}>
+              {balanceChange >= 0 ? '+' : '−'}{formatMoney(Math.abs(balanceChange))} ₽ за период
+            </span>
+          </div>
         </div>
       </div>
 
@@ -391,7 +472,7 @@ function BalanceHistoryChart({ points, loading, error }) {
         <svg
           viewBox={`0 0 ${width} ${height}`}
           role="img"
-          aria-label="График изменения общего баланса за 30 дней"
+          aria-label={`График изменения общего баланса: ${activePeriod.label.toLowerCase()}`}
           style={{ width: '100%', minWidth: '620px', display: 'block' }}
         >
           <defs>
@@ -446,7 +527,7 @@ function BalanceHistoryChart({ points, loading, error }) {
               stroke="#86efac"
               strokeWidth="2"
             >
-              <title>{`${formatChartDate(point.date)}: ${formatMoney(point.balance)} ₽`}</title>
+              <title>{`${formatChartDate(point.date, period)}: ${formatMoney(point.balance)} ₽`}</title>
             </circle>
           ))}
 
@@ -461,7 +542,7 @@ function BalanceHistoryChart({ points, loading, error }) {
                 fontSize="11"
                 textAnchor="middle"
               >
-                {formatChartDate(point.date)}
+                {formatChartDate(point.date, period)}
               </text>
             );
           })}
@@ -501,12 +582,19 @@ function AllOperationGroups({ groups, onSelect }) {
                       <div style={operationPurposeStyle}>{operation.purpose}</div>
                     </div>
                   </div>
-                  <strong style={{
-                    color: getOperationAmountColor(operation),
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {operation.sign}{formatMoney(operation.amount)} {operation.currency || ''}
-                  </strong>
+                  <div style={operationAmountGroupStyle}>
+                    {hasCashback(operation) && (
+                      <span style={cashbackChipStyle}>
+                        +{formatCashbackBadge(operation.cashbackAmount)}
+                      </span>
+                    )}
+                    <strong style={{
+                      color: getOperationAmountColor(operation),
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {operation.sign}{formatMoney(operation.amount)} {operation.currency || ''}
+                    </strong>
+                  </div>
                 </Component>
               );
             })}
@@ -517,34 +605,44 @@ function AllOperationGroups({ groups, onSelect }) {
   );
 }
 
-function PaymentGroups({ groups, onSelect }) {
+function PaymentGroups({ groups, cashbackByPaymentId, onSelect }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {groups.map(group => (
         <section key={group.key}>
           <h2 style={groupTitleStyle}>{group.label}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {group.payments.map(payment => (
-              <button
-                key={payment.id}
-                type="button"
-                onClick={() => onSelect(payment)}
-                style={operationButtonStyle}
-              >
-                <div style={operationInfoStyle}>
-                  <OperationIcon type="payment" recipient={payment.recipient} />
-                  <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {getPaymentRecipientLabel(payment.recipient)}
-                  </span>
-                </div>
-                <strong style={{
-                  color: payment.status === 'FAILED' ? '#f87171' : '#fff',
-                  whiteSpace: 'nowrap',
-                }}>
-                  −{formatMoney(payment.amount)} {payment.currency || ''}
-                </strong>
-              </button>
-            ))}
+            {group.payments.map(payment => {
+              const cashback = cashbackByPaymentId.get(String(payment.id));
+              return (
+                <button
+                  key={payment.id}
+                  type="button"
+                  onClick={() => onSelect(payment)}
+                  style={operationButtonStyle}
+                >
+                  <div style={operationInfoStyle}>
+                    <OperationIcon type="payment" recipient={payment.recipient} />
+                    <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {getPaymentRecipientLabel(payment.recipient)}
+                    </span>
+                  </div>
+                  <div style={operationAmountGroupStyle}>
+                    {cashback && (
+                      <span style={cashbackChipStyle}>
+                        +{formatCashbackBadge(cashback.cashbackAmount)}
+                      </span>
+                    )}
+                    <strong style={{
+                      color: payment.status === 'FAILED' ? '#f87171' : '#fff',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      −{formatMoney(payment.amount)} {payment.currency || ''}
+                    </strong>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </section>
       ))}
@@ -725,7 +823,7 @@ function groupPaymentsByDate(payments) {
     }));
 }
 
-function buildAllOperations(transfers, payments, replenishments) {
+function buildAllOperations(transfers, payments, replenishments, cashbackByPaymentId) {
   const transferOperations = transfers.map(transfer => {
     const amount = getDisplayAmount(transfer);
     const isAccountTransfer = transfer.operationType === 'ACCOUNT';
@@ -748,20 +846,24 @@ function buildAllOperations(transfers, payments, replenishments) {
     };
   });
 
-  const paymentOperations = payments.map(payment => ({
-    id: payment.id,
-    type: 'payment',
-    date: payment.timeOfPay,
-    title: getPaymentRecipientLabel(payment.recipient),
-    purpose: getPaymentPurpose(payment),
-    amount: payment.amount,
-    currency: payment.currency,
-    sign: '−',
-    incoming: false,
-    status: payment.status,
-    recipient: payment.recipient,
-    path: `/history/payments/${payment.id}`,
-  }));
+  const paymentOperations = payments.map(payment => {
+    const cashback = cashbackByPaymentId.get(String(payment.id));
+    return {
+      id: payment.id,
+      type: 'payment',
+      date: payment.timeOfPay,
+      title: getPaymentRecipientLabel(payment.recipient),
+      purpose: getPaymentPurpose(payment),
+      amount: payment.amount,
+      currency: payment.currency,
+      sign: '−',
+      incoming: false,
+      status: payment.status,
+      recipient: payment.recipient,
+      path: `/history/payments/${payment.id}`,
+      cashbackAmount: cashback?.cashbackAmount,
+    };
+  });
 
   const replenishmentOperations = replenishments.map(replenishment => ({
     id: replenishment.id,
@@ -781,11 +883,14 @@ function buildAllOperations(transfers, payments, replenishments) {
   return [...transferOperations, ...paymentOperations, ...replenishmentOperations];
 }
 
-function buildBalanceHistory(accounts, rates, transfers, payments, replenishments) {
+function buildBalanceHistory(accounts, rates, transfers, payments, replenishments, period = 'day') {
   if (!rates || accounts.length === 0) return [];
 
+  const periodConfig = period === 'week'
+    ? { unit: 'day', points: 7 }
+    : { unit: 'hour' };
   const getRubAmount = (amount, currency) => {
-    const rate = Number(rates[currency]);
+    const rate = currency === 'RUB' ? 1 : Number(rates[currency]);
     const numericAmount = Number(amount);
     return Number.isFinite(rate) && Number.isFinite(numericAmount)
       ? numericAmount * rate
@@ -798,19 +903,17 @@ function buildBalanceHistory(accounts, rates, transfers, payments, replenishment
 
   if (!Number.isFinite(currentBalance)) return [];
 
-  const today = startOfDay(new Date());
-  const dates = Array.from({ length: 30 }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - (29 - index));
-    return date;
-  });
-  const dailyChanges = new Map(dates.map(date => [getLocalDateKey(date), 0]));
+  const currentPeriodStart = getPeriodStart(new Date(), periodConfig.unit);
+  const periods = buildChartPeriods(currentPeriodStart, periodConfig);
+  const periodChanges = new Map(periods.map(item => [item.key, 0]));
 
   const addChange = (dateValue, amount) => {
     const date = new Date(dateValue);
-    const key = getLocalDateKey(date);
-    if (!dailyChanges.has(key) || !Number.isFinite(amount)) return;
-    dailyChanges.set(key, dailyChanges.get(key) + amount);
+    if (Number.isNaN(date.getTime())) return;
+    const periodStart = getPeriodStart(date, periodConfig.unit);
+    const key = getPeriodKey(periodStart, periodConfig.unit);
+    if (!periodChanges.has(key) || !Number.isFinite(amount)) return;
+    periodChanges.set(key, periodChanges.get(key) + amount);
   };
 
   transfers.forEach(transfer => {
@@ -842,17 +945,16 @@ function buildBalanceHistory(accounts, rates, transfers, payments, replenishment
     if (amount !== null) addChange(replenishment.timeOfReplenishment, amount);
   });
 
-  const points = new Array(dates.length);
+  const points = new Array(periods.length);
   let runningBalance = currentBalance;
-  for (let index = dates.length - 1; index >= 0; index -= 1) {
-    const date = dates[index];
-    const key = getLocalDateKey(date);
+  for (let index = periods.length - 1; index >= 0; index -= 1) {
+    const periodItem = periods[index];
     points[index] = {
-      key,
-      date,
+      key: periodItem.key,
+      date: periodItem.start,
       balance: Math.max(runningBalance, 0),
     };
-    runningBalance -= dailyChanges.get(key) || 0;
+    runningBalance -= periodChanges.get(periodItem.key) || 0;
   }
 
   return points;
@@ -928,14 +1030,102 @@ function getOperationAmountColor(operation) {
   return '#fff';
 }
 
+function buildCashbackByPaymentId(accruals) {
+  return accruals.reduce((map, accrual) => {
+    if (accrual.paymentId) {
+      map.set(String(accrual.paymentId), accrual);
+    }
+    return map;
+  }, new Map());
+}
+
+function hasCashback(operation) {
+  return operation.type === 'payment' && Number(operation.cashbackAmount || 0) > 0;
+}
+
+function formatCashbackBadge(amount) {
+  return Math.round(Number(amount || 0)).toLocaleString('ru-RU', {
+    maximumFractionDigits: 0,
+  });
+}
+
 function getLocalDateKey(date) {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
+function getPeriodKey(date, unit) {
+  const dayKey = getLocalDateKey(date);
+  if (unit === 'hour') {
+    return `${dayKey}-${date.getHours()}`;
+  }
+  return dayKey;
 }
 
 function startOfDay(value) {
   const date = new Date(value);
   date.setHours(0, 0, 0, 0);
   return date;
+}
+
+function startOfHour(value) {
+  const date = new Date(value);
+  date.setMinutes(0, 0, 0);
+  return date;
+}
+
+function getPeriodStart(value, unit) {
+  if (unit === 'hour') return startOfHour(value);
+
+  const date = startOfDay(value);
+  if (unit !== 'week') return date;
+
+  const day = date.getDay() || 7;
+  date.setDate(date.getDate() - day + 1);
+  return date;
+}
+
+function buildChartPeriods(currentPeriodStart, periodConfig) {
+  if (periodConfig.unit === 'hour') {
+    const today = startOfDay(currentPeriodStart);
+    const currentHour = currentPeriodStart.getHours();
+    return Array.from({ length: currentHour + 1 }, (_, index) => {
+      const start = new Date(today);
+      start.setHours(index, 0, 0, 0);
+      return {
+        key: getPeriodKey(start, periodConfig.unit),
+        start,
+      };
+    });
+  }
+
+  return Array.from({ length: periodConfig.points }, (_, index) => {
+    const start = addPeriods(currentPeriodStart, index - (periodConfig.points - 1), periodConfig.unit);
+    return {
+      key: getPeriodKey(start, periodConfig.unit),
+      start,
+    };
+  });
+}
+
+function addPeriods(value, count, unit) {
+  const date = new Date(value);
+  if (unit === 'hour') {
+    date.setHours(date.getHours() + count);
+    return date;
+  }
+  date.setDate(date.getDate() + count * (unit === 'week' ? 7 : 1));
+  return date;
+}
+
+function getChartLabelIndexes(length) {
+  if (length === 24) {
+    return [0, 3, 6, 9, 12, 15, 18, 21, 23];
+  }
+  if (length <= 8) {
+    return Array.from({ length }, (_, index) => index);
+  }
+
+  return [0, Math.floor((length - 1) / 2), length - 1];
 }
 
 function formatGroupDate(date) {
@@ -966,8 +1156,16 @@ function formatCompactMoney(value) {
   }).format(Number(value || 0));
 }
 
-function formatChartDate(value) {
-  return new Date(value).toLocaleDateString('ru-RU', {
+function formatChartDate(value, period = 'day') {
+  const date = new Date(value);
+  if (period === 'day') {
+    return date.toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  return date.toLocaleDateString('ru-RU', {
     day: '2-digit',
     month: '2-digit',
   });
@@ -1042,6 +1240,31 @@ const operationInfoStyle = {
   gap: '0.8rem',
 };
 
+const operationAmountGroupStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '0.65rem',
+  minWidth: 0,
+};
+
+const cashbackChipStyle = {
+  minWidth: '42px',
+  height: '30px',
+  padding: '0 0.65rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid rgba(251,191,36,0.42)',
+  borderRadius: '999px',
+  background: 'rgba(251,191,36,0.14)',
+  color: '#facc15',
+  fontSize: '0.78rem',
+  fontWeight: 850,
+  lineHeight: 1,
+  whiteSpace: 'nowrap',
+};
+
 const operationIconStyle = {
   width: '38px',
   height: '38px',
@@ -1086,7 +1309,41 @@ const chartHeaderStyle = {
   justifyContent: 'space-between',
   gap: '1.5rem',
   marginBottom: '1rem',
+  flexWrap: 'wrap',
 };
+
+const chartHeaderRightStyle = {
+  display: 'flex',
+  alignItems: 'flex-end',
+  gap: '1rem',
+  marginLeft: 'auto',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+};
+
+const chartPeriodToggleStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '0.2rem',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '12px',
+  background: 'rgba(255,255,255,0.04)',
+};
+
+function getChartPeriodButtonStyle(active) {
+  return {
+    minWidth: '76px',
+    padding: '0.45rem 0.7rem',
+    border: 'none',
+    borderRadius: '9px',
+    background: active ? 'rgba(74,222,128,0.18)' : 'transparent',
+    color: active ? '#bbf7d0' : 'rgba(255,255,255,0.58)',
+    cursor: 'pointer',
+    fontWeight: 700,
+    fontSize: '0.78rem',
+    transition: 'background 0.2s ease, color 0.2s ease',
+  };
+}
 
 const chartTitleStyle = {
   fontSize: '1.15rem',
