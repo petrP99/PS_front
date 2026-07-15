@@ -4,15 +4,10 @@ services:
     container_name: ps-front
     build:
       context: .
-      args:
-        VITE_BFF_BASE_URL: ${VITE_BFF_BASE_URL:-http://localhost:9091}
+    environment:
+      BFF_UPSTREAM: ${BFF_UPSTREAM:-http://host.docker.internal:9091}
     ports:
-      - "5173:80"
+      - "${FRONT_PORT:-5173}:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
-    networks:
-      - observability-net
-
-networks:
-  observability-net:
-    external: true
-    name: ps-observability-net
