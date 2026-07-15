@@ -79,12 +79,12 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
+    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', zIndex: 1, background: '#1b1b1f' }}>
       <aside style={{
           width: '260px',
-          background: 'rgba(15,15,25,0.95)',
+          background: 'linear-gradient(180deg, rgba(34,34,37,0.98), rgba(23,23,25,0.98))',
           backdropFilter: 'blur(20px)',
-          borderRight: '1px solid rgba(255,255,255,0.06)',
+          borderRight: '1px solid rgba(255,255,255,0.08)',
           padding: '2rem 0',
           display: 'flex',
           flexDirection: 'column',
@@ -97,16 +97,16 @@ export default function Layout({ children }) {
             <Link to="/home" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{
                 width: '42px', height: '42px',
-                background: 'linear-gradient(135deg, #6366f1, #c084fc, #f472b6)',
+                background: 'linear-gradient(135deg, #52525b, #1e3a8a, #7f1d1d)',
                 backgroundSize: '200% 200%',
                 animation: 'gradientShift 4s ease infinite',
                 borderRadius: '14px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '1.3rem',
-                boxShadow: '0 0 20px rgba(99,102,241,0.3)',
+                boxShadow: '0 0 22px rgba(30,58,138,0.22), 0 0 18px rgba(127,29,29,0.14)',
               }}>✦</div>
               <span style={{ fontSize: '1.15rem', fontWeight: 700, letterSpacing: '-0.5px' }}>
-                Pay<span style={{ color: '#818cf8' }}>Flow</span>
+                Pay<span style={{ color: '#cbd5e1' }}>Flow</span>
               </span>
             </Link>
           </div>
@@ -121,15 +121,15 @@ export default function Layout({ children }) {
                   padding: '0.85rem 1.5rem', margin: '0 0.75rem 0.25rem',
                   color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
                   textDecoration: 'none', fontSize: '0.9rem', fontWeight: isActive ? 600 : 400,
-                  background: isActive ? 'rgba(99,102,241,0.1)' : 'transparent',
+                  background: isActive ? 'linear-gradient(135deg, rgba(51,65,85,0.42), rgba(127,29,29,0.14))' : 'transparent',
                   borderRadius: '12px',
-                  border: isActive ? '1px solid rgba(99,102,241,0.2)' : '1px solid transparent',
+                  border: isActive ? '1px solid rgba(148,163,184,0.2)' : '1px solid transparent',
                   transition: 'all 0.3s',
                   backdropFilter: isActive ? 'blur(10px)' : 'none',
                 }}>
                   <span style={{ fontSize: '1.1rem', opacity: isActive ? 1 : 0.6 }}>{item.icon}</span>
                   <span>{item.label}</span>
-                  {isActive && <span style={{ marginLeft: 'auto', width: '6px', height: '6px', background: '#818cf8', borderRadius: '50%', boxShadow: '0 0 10px #818cf8' }} />}
+                  {isActive && <span style={{ marginLeft: 'auto', width: '6px', height: '6px', background: '#94a3b8', borderRadius: '50%', boxShadow: '0 0 10px rgba(148,163,184,0.55)' }} />}
                 </Link>
               );
             })}
@@ -150,9 +150,9 @@ export default function Layout({ children }) {
           justifyContent: 'space-between',
           gap: '1.5rem',
           padding: '0 2rem',
-          background: 'rgba(15,15,25,0.9)',
+          background: 'rgba(29,29,32,0.94)',
           backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             <button
@@ -177,23 +177,24 @@ export default function Layout({ children }) {
                   ? 'Загрузка...'
                   : Number.isFinite(totalBalance)
                     ? `${formatMoney(totalBalance)} ${currencySigns[balanceCurrency]}`
-                    : 'Недоступен'}
+                : 'Недоступен'}
               </strong>
             </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={rateStyle}>
+                <CurrencyFlag currency="USD" />
+                <span style={rateLabelStyle}>USD</span>
+                <strong>{rates?.USD ? formatMoney(rates.USD) : '—'}</strong>
+              </div>
+              <div style={rateStyle}>
+                <CurrencyFlag currency="CNY" />
+                <span style={rateLabelStyle}>CNY</span>
+                <strong>{rates?.CNY ? formatMoney(rates.CNY) : '—'}</strong>
+              </div>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={rateStyle}>
-              <CurrencyFlag currency="USD" />
-              <span style={rateLabelStyle}>USD</span>
-              <strong>{rates?.USD ? formatMoney(rates.USD) : '—'}</strong>
-            </div>
-            <div style={rateStyle}>
-              <CurrencyFlag currency="CNY" />
-              <span style={rateLabelStyle}>CNY</span>
-              <strong>{rates?.CNY ? formatMoney(rates.CNY) : '—'}</strong>
-            </div>
-            <div style={{ width: '1px', height: '34px', margin: '0 0.25rem', background: 'rgba(255,255,255,0.08)' }} />
             <NotificationBell />
             <Link
               to="/profile"
@@ -205,7 +206,7 @@ export default function Layout({ children }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1, #c084fc)',
+                background: 'linear-gradient(135deg, #3f3f46, #1e40af, #7f1d1d)',
                 color: '#fff',
                 textDecoration: 'none',
                 fontWeight: 700,
@@ -227,6 +228,7 @@ export default function Layout({ children }) {
         minHeight: '100vh',
         position: 'relative',
         zIndex: 1,
+        background: '#1b1b1f',
       }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fadeIn 0.5s ease-out' }}>
           {children}
@@ -296,11 +298,12 @@ const balanceGradientStyle = {
   display: 'block',
   marginTop: '0.2rem',
   fontSize: '1.15rem',
-  background: 'linear-gradient(120deg, #22c55e, #86efac, #10b981, #bbf7d0)',
-  backgroundSize: '250% 250%',
+  background: 'linear-gradient(115deg, #fff8d6 0%, #f6d365 24%, #fef3c7 42%, #e5e7eb 58%, #b9c2cf 72%, #facc15 100%)',
+  backgroundSize: '260% 260%',
   animation: 'gradientShift 4s ease infinite',
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
+  filter: 'drop-shadow(0 0 7px rgba(250,204,21,0.28)) drop-shadow(0 0 14px rgba(229,231,235,0.16))',
 };
 
 const rateStyle = {

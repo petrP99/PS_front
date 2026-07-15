@@ -235,62 +235,65 @@ export default function CashbackPage() {
         </div>
       </div>
 
-      <div className="glass" style={categoryCardStyle}>
-        <div>
-          <span style={summaryLabelStyle}>Повышенная категория текущего месяца</span>
-          {categoriesLoading ? (
-            <strong style={categoryTitleStyle}>Загрузка...</strong>
-          ) : cashbackServiceUnavailable ? (
-            <strong style={{ ...categoryTitleStyle, color: '#fda4af' }}>
-              Сервис кешбека на данный момент недоступен
-            </strong>
-          ) : hasSelectedCategories ? (
-            <div style={selectedCategoryListStyle}>
-              {selectedCategories.map(category => (
-                <div key={category.recipient} style={selectedCategoryChipStyle}>
-                  <span>{getRecipientIcon(category.recipient)}</span>
-                  <strong>{recipientLabels[category.recipient] || category.recipient}</strong>
-                  <span style={{ color: '#99f6e4' }}>{formatPercent(category.percent)}%</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <>
-              <strong style={categoryTitleStyle}>Категория еще не выбрана</strong>
-              <p style={categoryDescriptionStyle}>
-                {canSelectCategory
-                  ? `Выберите до ${maxSelectedCategories} категорий платежей. После сохранения изменить выбор в текущем месяце нельзя.`
-                  : availableLoading
-                    ? 'Загружаем доступные категории.'
-                    : 'Сервис кешбека на данный момент недоступен'}
-              </p>
-            </>
+      <div style={cashbackOverviewStyle}>
+        <div style={summaryCardStyle}>
+          <div>
+            <span style={summaryPrimaryLabelStyle}>Начислено за месяц</span>
+            <strong style={summaryValueStyle}>{formatCashbackMoney(monthTotal)} ₽</strong>
+          </div>
+          <span style={summaryPrimaryHintStyle}>{formatMonthTitle(selectedMonth)}</span>
+        </div>
+
+        <div style={categoryCardStyle}>
+          <div>
+            <span style={summaryLabelStyle}>Категории текущего месяца</span>
+            {categoriesLoading ? (
+              <strong style={categoryTitleStyle}>Загрузка...</strong>
+            ) : cashbackServiceUnavailable ? (
+              <strong style={{ ...categoryTitleStyle, color: '#fda4af' }}>
+                Сервис кешбека на данный момент недоступен
+              </strong>
+            ) : hasSelectedCategories ? (
+              <div style={selectedCategoryListStyle}>
+                {selectedCategories.map(category => (
+                  <div key={category.recipient} style={selectedCategoryChipStyle}>
+                    <span style={selectedCategoryIconStyle}>{getRecipientIcon(category.recipient)}</span>
+                    <strong>{recipientLabels[category.recipient] || category.recipient}</strong>
+                    <span style={selectedCategoryPercentStyle}>{formatPercent(category.percent)}%</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <strong style={categoryTitleStyle}>Категория еще не выбрана</strong>
+                <p style={categoryDescriptionStyle}>
+                  {canSelectCategory
+                    ? `Выберите до ${maxSelectedCategories} категорий платежей. После сохранения изменить выбор в текущем месяце нельзя.`
+                    : availableLoading
+                      ? 'Загружаем доступные категории.'
+                      : 'Сервис кешбека на данный момент недоступен'}
+                </p>
+              </>
+            )}
+          </div>
+
+          {!categoriesLoading && !categoriesError && !hasSelectedCategories && canSelectCategory && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedRecipients([]);
+                setSelectionError('');
+                setCategoryModalOpen(true);
+              }}
+              style={selectCategoryButtonStyle}
+            >
+              Выбрать категорию
+            </button>
           )}
         </div>
-
-        {!categoriesLoading && !categoriesError && !hasSelectedCategories && canSelectCategory && (
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedRecipients([]);
-              setSelectionError('');
-              setCategoryModalOpen(true);
-            }}
-            style={selectCategoryButtonStyle}
-          >
-            Выбрать категорию
-          </button>
-        )}
       </div>
 
-      <div style={summaryGridStyle}>
-        <div className="glass" style={summaryCardStyle}>
-          <span style={summaryLabelStyle}>Начислено за месяц</span>
-          <strong style={summaryValueStyle}>{formatCashbackMoney(monthTotal)} ₽</strong>
-        </div>
-      </div>
-
-      <div className="glass" style={listCardStyle}>
+      <div style={listCardStyle}>
         {loading ? (
           <EmptyState>Загрузка начислений...</EmptyState>
         ) : error ? (
@@ -616,16 +619,28 @@ const monthInputStyle = {
   cursor: 'pointer',
 };
 
-const categoryCardStyle = {
+const cashbackOverviewStyle = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
   gap: '1rem',
-  alignItems: 'center',
-  padding: '1.25rem',
-  borderRadius: '18px',
-  border: '1px solid rgba(45,212,191,0.18)',
-  background: 'linear-gradient(135deg, rgba(20,184,166,0.11), rgba(99,102,241,0.08))',
+  alignItems: 'stretch',
   marginBottom: '1.5rem',
+};
+
+const categoryCardStyle = {
+  minHeight: '210px',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+  gap: '1.25rem',
+  padding: '1.25rem',
+  borderRadius: '20px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  background: `
+    radial-gradient(circle at 92% 12%, rgba(30,64,175,0.18), transparent 34%),
+    linear-gradient(135deg, rgba(45,45,48,0.94), rgba(24,24,27,0.98))
+  `,
+  boxShadow: '0 18px 44px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.06)',
 };
 
 const categoryTitleStyle = {
@@ -637,51 +652,95 @@ const categoryTitleStyle = {
 
 const categoryDescriptionStyle = {
   marginTop: '0.45rem',
-  color: 'rgba(255,255,255,0.46)',
+  color: 'rgba(255,255,255,0.52)',
   fontSize: '0.85rem',
+  lineHeight: 1.55,
 };
 
 const selectedCategoryListStyle = {
   display: 'flex',
-  flexWrap: 'wrap',
+  flexDirection: 'column',
   gap: '0.65rem',
   marginTop: '0.75rem',
 };
 
 const selectedCategoryChipStyle = {
-  display: 'flex',
+  display: 'grid',
+  gridTemplateColumns: '36px minmax(0, 1fr) auto',
   alignItems: 'center',
-  gap: '0.5rem',
-  padding: '0.65rem 0.85rem',
-  border: '1px solid rgba(45,212,191,0.24)',
-  borderRadius: '12px',
-  background: 'rgba(20,184,166,0.1)',
+  gap: '0.75rem',
+  padding: '0.7rem 0.85rem',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '14px',
+  background: 'linear-gradient(135deg, rgba(63,63,70,0.72), rgba(32,32,35,0.88))',
   color: '#fff',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+};
+
+const selectedCategoryIconStyle = {
+  width: '36px',
+  height: '36px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid rgba(147,197,253,0.18)',
+  borderRadius: '12px',
+  background: 'rgba(30,64,175,0.16)',
+};
+
+const selectedCategoryPercentStyle = {
+  minWidth: '48px',
+  height: '30px',
+  padding: '0 0.65rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid rgba(251,191,36,0.38)',
+  borderRadius: '999px',
+  background: 'rgba(251,191,36,0.12)',
+  color: '#facc15',
+  fontWeight: 850,
+  whiteSpace: 'nowrap',
 };
 
 const selectCategoryButtonStyle = {
   padding: '0.8rem 1.1rem',
-  border: '1px solid rgba(45,212,191,0.34)',
+  border: '1px solid rgba(147,197,253,0.28)',
   borderRadius: '12px',
-  background: 'rgba(20,184,166,0.14)',
-  color: '#ccfbf1',
+  background: 'linear-gradient(135deg, rgba(30,64,175,0.22), rgba(63,63,70,0.42))',
+  color: '#dbeafe',
   cursor: 'pointer',
   fontWeight: 700,
   whiteSpace: 'nowrap',
-};
-
-const summaryGridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-  gap: '1rem',
-  marginBottom: '1.5rem',
+  alignSelf: 'flex-start',
 };
 
 const summaryCardStyle = {
-  padding: '1.25rem',
-  borderRadius: '18px',
-  border: '1px solid rgba(45,212,191,0.16)',
-  background: 'linear-gradient(135deg, rgba(20,184,166,0.12), rgba(99,102,241,0.08))',
+  minHeight: '210px',
+  padding: '1.35rem',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+  borderRadius: '20px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  background: `
+    radial-gradient(circle at 18% 14%, rgba(251,191,36,0.16), transparent 34%),
+    radial-gradient(circle at 88% 82%, rgba(148,163,184,0.12), transparent 36%),
+    linear-gradient(135deg, rgba(48,48,52,0.96), rgba(22,22,24,0.98))
+  `,
+  boxShadow: '0 18px 44px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.07)',
+  color: '#fff',
+};
+
+const summaryPrimaryLabelStyle = {
+  display: 'block',
+  marginBottom: '0.55rem',
+  color: '#fff',
+  fontSize: '0.82rem',
+  fontWeight: 750,
+  letterSpacing: '0.03em',
+  textTransform: 'uppercase',
+  textShadow: '0 1px 10px rgba(255,255,255,0.16)',
 };
 
 const summaryLabelStyle = {
@@ -692,13 +751,35 @@ const summaryLabelStyle = {
 };
 
 const summaryValueStyle = {
-  color: '#99f6e4',
-  fontSize: '1.55rem',
+  display: 'block',
+  marginTop: '0.75rem',
+  color: '#fff',
+  fontSize: '2.1rem',
+  fontWeight: 850,
+  lineHeight: 1.05,
+  textShadow: '0 0 18px rgba(255,255,255,0.2), 0 1px 0 rgba(255,255,255,0.1)',
+};
+
+const summaryPrimaryHintStyle = {
+  color: '#fff',
+  fontSize: '0.86rem',
+  fontWeight: 650,
+  textTransform: 'capitalize',
+  textShadow: '0 1px 10px rgba(255,255,255,0.14)',
+};
+
+const summaryHintStyle = {
+  color: 'rgba(255,255,255,0.42)',
+  fontSize: '0.86rem',
+  textTransform: 'capitalize',
 };
 
 const listCardStyle = {
   padding: '1.5rem',
   borderRadius: '20px',
+  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'linear-gradient(135deg, rgba(39,39,42,0.88), rgba(24,24,27,0.96))',
+  boxShadow: '0 18px 44px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.04)',
 };
 
 const groupTitleStyle = {
