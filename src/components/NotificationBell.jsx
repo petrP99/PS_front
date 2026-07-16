@@ -18,7 +18,11 @@ export default function NotificationBell() {
   const [isMarkingAll, setIsMarkingAll] = useState(false);
   const [error, setError] = useState('');
   const containerRef = useRef(null);
+  const bellButtonRef = useRef(null);
+  const bellIconRef = useRef(null);
+  const badgeRef = useRef(null);
   const isOpenRef = useRef(false);
+  const previousUnreadCountRef = useRef(0);
 
   const refreshCount = useCallback(async () => {
     try {
@@ -47,6 +51,51 @@ export default function NotificationBell() {
   useEffect(() => {
     refreshCount();
   }, [refreshCount]);
+
+  useEffect(() => {
+    if (unreadCount > previousUnreadCountRef.current) {
+      const button = bellButtonRef.current;
+      const icon = bellIconRef.current;
+      const badge = badgeRef.current;
+
+      button?.getAnimations().forEach(animation => animation.cancel());
+      icon?.getAnimations().forEach(animation => animation.cancel());
+      badge?.getAnimations().forEach(animation => animation.cancel());
+
+      button?.animate([
+        { transform: 'scale(1)', background: 'rgba(255,255,255,0.035)', boxShadow: '0 0 0 rgba(99,102,241,0)' },
+        { transform: 'scale(1.14)', background: 'rgba(99,102,241,0.3)', boxShadow: '0 0 30px rgba(99,102,241,0.65)', offset: 0.3 },
+        { transform: 'scale(1.05)', background: 'rgba(99,102,241,0.18)', boxShadow: '0 0 18px rgba(99,102,241,0.38)', offset: 0.7 },
+        { transform: 'scale(1)', background: 'rgba(255,255,255,0.035)', boxShadow: '0 0 0 rgba(99,102,241,0)' },
+      ], {
+        duration: 1100,
+        easing: 'ease-out',
+      });
+
+      icon?.animate([
+        { transform: 'rotate(0deg) scale(1)' },
+        { transform: 'rotate(24deg) scale(1.18)', offset: 0.15 },
+        { transform: 'rotate(-22deg) scale(1.18)', offset: 0.3 },
+        { transform: 'rotate(17deg) scale(1.12)', offset: 0.45 },
+        { transform: 'rotate(-12deg) scale(1.08)', offset: 0.6 },
+        { transform: 'rotate(7deg) scale(1.04)', offset: 0.75 },
+        { transform: 'rotate(0deg) scale(1)' },
+      ], {
+        duration: 950,
+        easing: 'ease-in-out',
+      });
+
+      badge?.animate([
+        { transform: 'scale(0.65)', opacity: 0.65 },
+        { transform: 'scale(1.45)', opacity: 1, offset: 0.5 },
+        { transform: 'scale(1)', opacity: 1 },
+      ], {
+        duration: 650,
+        easing: 'cubic-bezier(0.2, 0.8, 0.3, 1.35)',
+      });
+    }
+    previousUnreadCountRef.current = unreadCount;
+  }, [unreadCount]);
 
   useEffect(() => {
     isOpenRef.current = isOpen;
@@ -175,18 +224,19 @@ export default function NotificationBell() {
   return (
     <div className="notification-bell" ref={containerRef}>
       <button
+        ref={bellButtonRef}
         type="button"
         className="notification-bell-button"
         onClick={handleToggle}
         aria-label="Уведомления"
         title="Уведомления"
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="notification-bell-icon">
+        <svg ref={bellIconRef} viewBox="0 0 24 24" aria-hidden="true" className="notification-bell-icon">
           <path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2v1h16v-1l-2-2Z" />
           <path d="M9.5 21a2.7 2.7 0 0 0 5 0" />
         </svg>
         {unreadCount > 0 && (
-          <span className="notification-badge">
+          <span ref={badgeRef} className="notification-badge">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
