@@ -1,18 +1,20 @@
+const currentHost = window.location.hostname;
+
 const grafanaTools = [
     {
-        href: 'http://localhost:3000/a/grafana-lokiexplore-app/explore',
+        href: `http://${currentHost}:3000/a/grafana-lokiexplore-app/explore`,
         icon: '📝',
         title: 'Logs',
         description: 'Логи сервисов',
     },
     {
-        href: 'http://localhost:3000/dashboards',
+        href: `http://${currentHost}:3000/dashboards`,
         icon: '📈',
         title: 'Monitoring',
         description: 'Дашборды метрик',
     },
     {
-        href: 'http://localhost:3000/a/grafana-exploretraces-app/explore',
+        href: `http://${currentHost}:3000/a/grafana-exploretraces-app/explore`,
         icon: '➡️️',
         title: 'Trace',
         description: 'Трейсы запросов',
@@ -21,13 +23,13 @@ const grafanaTools = [
 
 const adminTools = [
     {
-        href: 'http://localhost:8070/ui/clusters/local/all-topics',
+        href: `http://${currentHost}:8070/ui/clusters/local/all-topics`,
         icon: '🧵',
         title: 'Kafka UI',
         description: 'Топики локального Kafka-кластера',
     },
     {
-        href: 'http://localhost:9090/targets',
+        href: `http://${currentHost}:9090/targets`,
         icon: '🎯',
         title: 'Prometheus',
         description: 'Состояние targets и сбор метрик',
