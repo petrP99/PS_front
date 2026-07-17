@@ -323,7 +323,7 @@ export default function HomePage() {
                 ? '— — —'
                 : cashbackError || currentMonthCashback === null
                   ? 'Недоступно'
-                  : `${formatWholeMoney(currentMonthCashback)} ₽`}
+                  : <><span className="home-terminal__cashback-plus" aria-hidden="true">+</span>{formatWholeMoney(currentMonthCashback)}</>}
             </strong>
           </div>
 

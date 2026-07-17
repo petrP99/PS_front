@@ -1265,19 +1265,60 @@
 }
 
 .home-terminal__today {
+  position: relative;
   display: grid;
   flex: 0 0 auto;
   min-width: 210px;
+  overflow: hidden;
+  isolation: isolate;
   gap: 0.16rem;
   padding: 0.72rem 0.9rem;
-  border: 1px solid var(--home-border);
+  border: 1px solid rgba(140, 242, 155, 0.2);
   border-radius: 12px;
-  background: rgba(12, 14, 15, 0.76);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  background:
+    radial-gradient(circle at 88% 18%, rgba(140, 242, 155, 0.12), transparent 38%),
+    radial-gradient(circle at 8% 110%, rgba(109, 214, 255, 0.08), transparent 46%),
+    linear-gradient(135deg, rgba(17, 22, 20, 0.95), rgba(10, 13, 13, 0.94));
+  box-shadow:
+    inset 3px 0 0 rgba(140, 242, 155, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 34px rgba(0, 0, 0, 0.2),
+    0 0 24px rgba(140, 242, 155, 0.035);
+}
+
+.home-terminal__today::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -24px;
+  right: -15px;
+  width: 70px;
+  height: 70px;
+  border: 1px solid rgba(140, 242, 155, 0.1);
+  border-radius: 20px;
+  background: rgba(140, 242, 155, 0.025);
+  transform: rotate(24deg);
+  box-shadow: inset 0 0 20px rgba(140, 242, 155, 0.035);
+}
+
+.home-terminal__today::after {
+  content: '';
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.62rem;
+  width: 30px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(109, 214, 255, 0.42));
+  box-shadow: 0 0 8px rgba(109, 214, 255, 0.16);
 }
 
 .home-terminal__today span {
-  color: #626a67;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: rgba(140, 242, 155, 0.76);
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 0.58rem;
   font-weight: 700;
@@ -1285,10 +1326,43 @@
   text-transform: uppercase;
 }
 
+.home-terminal__today span::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--home-mint);
+  box-shadow: 0 0 0 3px rgba(140, 242, 155, 0.07), 0 0 12px rgba(140, 242, 155, 0.46);
+  animation: home-today-pulse 2.8s ease-in-out infinite;
+}
+
 .home-terminal__today strong {
-  color: #dce3df;
+  position: relative;
+  z-index: 1;
+  color: #eef8f1;
   font-size: 0.76rem;
-  font-weight: 590;
+  font-weight: 620;
+  letter-spacing: -0.012em;
+  text-shadow: 0 0 18px rgba(140, 242, 155, 0.1);
+}
+
+@keyframes home-today-pulse {
+  0%, 100% {
+    opacity: 0.62;
+    transform: scale(0.88);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-terminal__today span::before {
+    animation: none;
+  }
 }
 
 .home-terminal__portfolio {
@@ -1509,6 +1583,7 @@
 .home-terminal__cashback-total {
   display: grid;
   gap: 0.2rem;
+  min-height: 115px;
   padding: 1.35rem 1.35rem 1rem;
 }
 
@@ -1554,8 +1629,9 @@
 }
 
 .home-terminal__cashback-category-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
   gap: 0.45rem;
 }
 
@@ -1564,8 +1640,9 @@
   grid-template-columns: 30px minmax(0, 1fr);
   align-items: center;
   gap: 0.52rem;
-  min-width: min(100%, 150px);
-  flex: 1 1 145px;
+  width: 100%;
+  min-width: 0;
+  flex: none;
   padding: 0.55rem;
   border: 1px solid rgba(140, 242, 155, 0.11);
   border-radius: 10px;
@@ -1993,12 +2070,16 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+  justify-content: flex-start;
   min-height: 0;
 }
 
 .home-terminal__history-feed-row {
-  flex: 1 1 0;
-  min-height: 0;
+  box-sizing: border-box;
+  flex: 0 0 67px;
+  height: 67px;
+  min-height: 67px;
+  max-height: 67px;
   padding-top: 0.45rem;
   padding-bottom: 0.45rem;
 }
@@ -2314,7 +2395,62 @@
 }
 
 .home-terminal__balance-panel .home-terminal__balance-block {
+  position: relative;
+  overflow: hidden;
   margin: auto 0;
+  padding: 1.05rem 1rem 1.15rem;
+  border: 1px solid rgba(140, 242, 155, 0.2);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(140, 242, 155, 0.11), transparent 35%),
+    radial-gradient(circle at 6% 112%, rgba(109, 214, 255, 0.07), transparent 42%),
+    linear-gradient(135deg, rgba(140, 242, 155, 0.035), rgba(8, 12, 11, 0.34));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    inset 0 0 0 1px rgba(140, 242, 155, 0.018),
+    0 16px 36px rgba(0, 0, 0, 0.18),
+    0 0 28px rgba(140, 242, 155, 0.035);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.home-terminal__balance-panel .home-terminal__balance-block::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 14%;
+  width: 56%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(140, 242, 155, 0.85), rgba(109, 214, 255, 0.52), transparent);
+  box-shadow: 0 0 12px rgba(140, 242, 155, 0.22);
+}
+
+.home-terminal__balance-panel .home-terminal__balance-block::after {
+  content: '';
+  position: absolute;
+  right: -26px;
+  bottom: -34px;
+  width: 92px;
+  height: 92px;
+  border: 1px solid rgba(109, 214, 255, 0.08);
+  border-radius: 28px;
+  background: rgba(109, 214, 255, 0.018);
+  transform: rotate(24deg);
+  pointer-events: none;
+}
+
+.home-terminal__balance-panel .home-terminal__balance-block > * {
+  position: relative;
+  z-index: 1;
+}
+
+.home-terminal__balance-panel .home-terminal__balance-block:hover {
+  border-color: rgba(140, 242, 155, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.065),
+    inset 0 0 0 1px rgba(140, 242, 155, 0.028),
+    0 18px 42px rgba(0, 0, 0, 0.22),
+    0 0 34px rgba(140, 242, 155, 0.065);
+  transform: translateY(-1px);
 }
 
 .home-terminal button.home-terminal__balance {
@@ -2428,9 +2564,12 @@
 }
 
 .home-terminal__cashback-total strong.home-terminal__cashback-amount {
+  position: absolute;
+  top: 25%;
+  right: 1.35rem;
   width: max-content;
   max-width: 100%;
-  margin-top: 0.75rem;
+  margin-top: 0;
   padding: 0.58rem 0.78rem;
   border: 1px solid rgba(245, 199, 107, 0.56);
   border-radius: 10px;
@@ -2439,6 +2578,14 @@
   font-size: clamp(1.8rem, 2.25vw, 2.25rem);
   letter-spacing: -0.045em;
   box-shadow: inset 0 0 0 1px rgba(245, 199, 107, 0.045), 0 0 22px rgba(245, 199, 107, 0.055);
+}
+
+.home-terminal__cashback-plus {
+  display: inline-block;
+  margin-right: 0.06em;
+  font-size: 0.88em;
+  line-height: 1;
+  transform: translateY(-0.08em);
 }
 
 .home-terminal__cashback-categories-label {
