@@ -114,8 +114,8 @@ export default function TransferStatusPage() {
             ? 'rgba(34,197,94,0.14)'
             : isFailed
               ? 'rgba(244,63,94,0.14)'
-              : 'rgba(99,102,241,0.14)',
-          border: `1px solid ${isSuccess ? 'rgba(34,197,94,0.4)' : isFailed ? 'rgba(244,63,94,0.4)' : 'rgba(99,102,241,0.4)'}`,
+              : 'rgba(140,242,155,0.12)',
+          border: `1px solid ${isSuccess ? 'rgba(34,197,94,0.4)' : isFailed ? 'rgba(244,63,94,0.4)' : 'rgba(140,242,155,0.4)'}`,
           fontSize: '2.2rem',
           animation: isPending ? 'pulse 1.5s ease-in-out infinite' : 'none',
         }}>
@@ -154,7 +154,7 @@ export default function TransferStatusPage() {
               width: `${progress}%`,
               height: '100%',
               borderRadius: 'inherit',
-              background: 'linear-gradient(90deg, #6366f1, #c084fc)',
+              background: 'linear-gradient(90deg, #8cf29b, #6dd6ff)',
               transition: 'width 1s linear',
             }} />
           </div>
@@ -238,9 +238,9 @@ function InfoRow({ label, value, last = false }) {
 
 const primaryButtonStyle = {
   padding: '0.8rem 1.3rem',
-  border: '1px solid rgba(129,140,248,0.45)',
+  border: '1px solid rgba(140,242,155,0.45)',
   borderRadius: '11px',
-  background: 'rgba(99,102,241,0.3)',
+  background: 'rgba(140,242,155,0.18)',
   color: '#fff',
   cursor: 'pointer',
 };

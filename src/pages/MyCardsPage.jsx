@@ -154,7 +154,7 @@ export default function MyCardsPage() {
         <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Мои карты</h1>
         <button 
           className="glass" 
-          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#daf5ce' }}
+          style={{ padding: '0.7rem 1.5rem', background: 'rgba(140,242,155,0.14)', border: '1px solid rgba(140,242,155,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#daf5ce' }}
           onClick={() => {
             setNewCardData({ name: '', isPremium: false, accountId: '' });
             setShowCreateForm(true);
@@ -223,8 +223,8 @@ export default function MyCardsPage() {
                       padding: '1rem',
                       borderRadius: '12px',
                       cursor: 'pointer',
-                      border: selected ? '1px solid rgba(99,102,241,0.6)' : '1px solid rgba(255,255,255,0.1)',
-                      background: selected ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)',
+                      border: selected ? '1px solid rgba(140,242,155,0.6)' : '1px solid rgba(255,255,255,0.1)',
+                      background: selected ? 'rgba(140,242,155,0.12)' : 'rgba(255,255,255,0.04)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
@@ -247,7 +247,7 @@ export default function MyCardsPage() {
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button 
               className="glass" 
-              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: selectedAccount ? 'pointer' : 'not-allowed', opacity: selectedAccount ? 1 : 0.5, color: '#fff' }}
+              style={{ padding: '0.7rem 1.5rem', background: 'rgba(140,242,155,0.18)', borderRadius: '10px', cursor: selectedAccount ? 'pointer' : 'not-allowed', opacity: selectedAccount ? 1 : 0.5, color: '#c9ffd4' }}
               onClick={handleCreateCard}
               disabled={!selectedAccount}
             >

@@ -66,7 +66,7 @@ export default function MyAccountsPage() {
         <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Мои счета</h1>
         <button 
           className="glass" 
-          style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#fff' }}
+          style={{ padding: '0.7rem 1.5rem', background: 'rgba(140,242,155,0.14)', border: '1px solid rgba(140,242,155,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#c9ffd4' }}
           onClick={() => setShowCreateForm(true)}
         >
           Создать счёт
@@ -105,7 +105,7 @@ export default function MyAccountsPage() {
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button 
               className="glass" 
-              style={{ padding: '0.7rem 1.5rem', background: 'rgba(99,102,241,0.3)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
+              style={{ padding: '0.7rem 1.5rem', background: 'rgba(140,242,155,0.18)', borderRadius: '10px', cursor: 'pointer', color: '#c9ffd4' }}
               onClick={handleCreateAccount}
             >
               Создать

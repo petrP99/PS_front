@@ -17,7 +17,10 @@ export default function ProfilePage() {
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: '20px',
-          background: 'linear-gradient(135deg, #6366f1, #c084fc)',
+          border: '1px solid rgba(140,242,155,0.42)',
+          background: 'linear-gradient(135deg, rgba(140,242,155,0.92), rgba(109,214,255,0.82))',
+          boxShadow: '0 14px 34px rgba(42,134,92,0.2)',
+          color: '#07120c',
           fontSize: '1.7rem',
           fontWeight: 700,
         }}>

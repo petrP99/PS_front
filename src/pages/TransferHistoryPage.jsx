@@ -187,10 +187,10 @@ export default function TransferHistoryPage() {
               style={{
                 padding: '1.25rem',
                 border: active
-                  ? '1px solid rgba(129,140,248,0.55)'
+                  ? '1px solid rgba(140,242,155,0.55)'
                   : '1px solid rgba(255,255,255,0.08)',
                 borderRadius: '16px',
-                background: active ? 'rgba(99,102,241,0.16)' : 'rgba(255,255,255,0.035)',
+                background: active ? 'rgba(140,242,155,0.14)' : 'rgba(255,255,255,0.035)',
                 color: '#fff',
                 cursor: 'pointer',
                 textAlign: 'left',
@@ -1371,9 +1371,9 @@ const pageHeaderStyle = {
 
 const reportButtonStyle = {
   padding: '0.75rem 1.1rem',
-  border: '1px solid rgba(129,140,248,0.35)',
+  border: '1px solid rgba(140,242,155,0.35)',
   borderRadius: '12px',
-  background: 'rgba(99,102,241,0.14)',
+  background: 'rgba(140,242,155,0.1)',
   color: '#fff',
   cursor: 'pointer',
   fontWeight: 600,
@@ -1402,9 +1402,9 @@ const modalStyle = {
 const modalButtonStyle = {
   marginTop: '1.5rem',
   padding: '0.75rem 1.5rem',
-  border: '1px solid rgba(129,140,248,0.35)',
+  border: '1px solid rgba(140,242,155,0.35)',
   borderRadius: '10px',
-  background: 'rgba(99,102,241,0.18)',
+  background: 'rgba(140,242,155,0.12)',
   color: '#fff',
   cursor: 'pointer',
   fontWeight: 600,

@@ -635,10 +635,11 @@ const categoryCardStyle = {
   gap: '1.25rem',
   padding: '1.25rem',
   borderRadius: '20px',
-  border: '1px solid rgba(255,255,255,0.08)',
+  border: '1px solid rgba(109,214,255,0.16)',
   background: `
-    radial-gradient(circle at 92% 12%, rgba(30,64,175,0.18), transparent 34%),
-    linear-gradient(135deg, rgba(45,45,48,0.94), rgba(24,24,27,0.98))
+    radial-gradient(circle at 92% 12%, rgba(109,214,255,0.10), transparent 34%),
+    radial-gradient(circle at 8% 100%, rgba(140,242,155,0.045), transparent 42%),
+    linear-gradient(135deg, rgba(18,24,23,0.96), rgba(10,14,14,0.99))
   `,
   boxShadow: '0 18px 44px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.06)',
 };
@@ -670,9 +671,9 @@ const selectedCategoryChipStyle = {
   alignItems: 'center',
   gap: '0.75rem',
   padding: '0.7rem 0.85rem',
-  border: '1px solid rgba(255,255,255,0.08)',
+  border: '1px solid rgba(140,242,155,0.14)',
   borderRadius: '14px',
-  background: 'linear-gradient(135deg, rgba(63,63,70,0.72), rgba(32,32,35,0.88))',
+  background: 'linear-gradient(135deg, rgba(25,36,31,0.82), rgba(13,19,17,0.94))',
   color: '#fff',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
 };
@@ -683,9 +684,9 @@ const selectedCategoryIconStyle = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  border: '1px solid rgba(147,197,253,0.18)',
+  border: '1px solid rgba(109,214,255,0.22)',
   borderRadius: '12px',
-  background: 'rgba(30,64,175,0.16)',
+  background: 'rgba(109,214,255,0.08)',
 };
 
 const selectedCategoryPercentStyle = {
@@ -705,10 +706,10 @@ const selectedCategoryPercentStyle = {
 
 const selectCategoryButtonStyle = {
   padding: '0.8rem 1.1rem',
-  border: '1px solid rgba(147,197,253,0.28)',
+  border: '1px solid rgba(140,242,155,0.28)',
   borderRadius: '12px',
-  background: 'linear-gradient(135deg, rgba(30,64,175,0.22), rgba(63,63,70,0.42))',
-  color: '#dbeafe',
+  background: 'linear-gradient(135deg, rgba(140,242,155,0.14), rgba(109,214,255,0.08))',
+  color: '#c9ffd4',
   cursor: 'pointer',
   fontWeight: 700,
   whiteSpace: 'nowrap',
@@ -722,11 +723,11 @@ const summaryCardStyle = {
   flexDirection: 'column',
   justifyContent: 'space-between',
   borderRadius: '20px',
-  border: '1px solid rgba(255,255,255,0.08)',
+  border: '1px solid rgba(140,242,155,0.18)',
   background: `
-    radial-gradient(circle at 18% 14%, rgba(251,191,36,0.16), transparent 34%),
-    radial-gradient(circle at 88% 82%, rgba(148,163,184,0.12), transparent 36%),
-    linear-gradient(135deg, rgba(48,48,52,0.96), rgba(22,22,24,0.98))
+    radial-gradient(circle at 18% 14%, rgba(140,242,155,0.12), transparent 34%),
+    radial-gradient(circle at 88% 82%, rgba(109,214,255,0.055), transparent 36%),
+    linear-gradient(135deg, rgba(20,26,23,0.97), rgba(10,14,13,0.99))
   `,
   boxShadow: '0 18px 44px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.07)',
   color: '#fff',
@@ -777,8 +778,8 @@ const summaryHintStyle = {
 const listCardStyle = {
   padding: '1.5rem',
   borderRadius: '20px',
-  border: '1px solid rgba(255,255,255,0.08)',
-  background: 'linear-gradient(135deg, rgba(39,39,42,0.88), rgba(24,24,27,0.96))',
+  border: '1px solid rgba(140,242,155,0.12)',
+  background: 'linear-gradient(135deg, rgba(18,25,22,0.92), rgba(10,14,13,0.98))',
   boxShadow: '0 18px 44px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.04)',
 };
 

@@ -44,7 +44,7 @@ export default function TransferMethodPage() {
             className="glass"
             style={{
               padding: '2rem',
-              border: '1px solid rgba(129,140,248,0.22)',
+              border: '1px solid rgba(140,242,155,0.2)',
               borderRadius: '20px',
               background: 'rgba(255,255,255,0.035)',
               color: '#fff',

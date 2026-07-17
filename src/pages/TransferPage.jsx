@@ -254,7 +254,7 @@ export default function TransferPage({ mode = 'card' }) {
                   marginTop: '-0.5rem',
                   marginBottom: '1.25rem',
                   borderRadius: '12px',
-                  background: 'rgba(99,102,241,0.09)',
+                  background: 'rgba(140,242,155,0.07)',
                   color: 'rgba(255,255,255,0.68)',
                   fontSize: '0.9rem',
                 }}>
@@ -349,9 +349,9 @@ export default function TransferPage({ mode = 'card' }) {
                 <div style={{
                   padding: '0.9rem 1rem',
                   marginBottom: '1.25rem',
-                  border: '1px solid rgba(99,102,241,0.28)',
+                  border: '1px solid rgba(140,242,155,0.28)',
                   borderRadius: '12px',
-                  background: 'rgba(99,102,241,0.09)',
+                  background: 'rgba(140,242,155,0.07)',
                   color: 'rgba(255,255,255,0.7)',
                   fontSize: '0.9rem',
                 }}>
@@ -508,10 +508,10 @@ const inputStyle = {
 
 const primaryButtonStyle = {
   padding: '0.85rem 1.5rem',
-  border: '1px solid rgba(129,140,248,0.45)',
+  border: '1px solid rgba(140,242,155,0.45)',
   borderRadius: '12px',
-  background: 'linear-gradient(135deg, rgba(99,102,241,0.85), rgba(168,85,247,0.85))',
-  color: '#fff',
+  background: 'linear-gradient(135deg, rgba(140,242,155,0.88), rgba(109,214,255,0.78))',
+  color: '#07120c',
   fontWeight: 600,
   cursor: 'pointer',
 };

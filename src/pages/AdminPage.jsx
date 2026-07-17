@@ -61,9 +61,9 @@ export default function AdminPage() {
                     className="glass"
                     style={{
                         padding: '2rem',
-                        border: '1px solid rgba(129,140,248,0.22)',
+                        border: '1px solid rgba(109,214,255,0.22)',
                         borderRadius: '20px',
-                        background: 'linear-gradient(135deg, rgba(129,140,248,0.12), rgba(20,184,166,0.06))',
+                        background: 'linear-gradient(135deg, rgba(109,214,255,0.08), rgba(140,242,155,0.05))',
                         color: '#fff',
                     }}
                 >
@@ -123,7 +123,7 @@ export default function AdminPage() {
                         style={{
                             display: 'block',
                             padding: '2rem',
-                            border: '1px solid rgba(129,140,248,0.22)',
+                            border: '1px solid rgba(109,214,255,0.22)',
                             borderRadius: '20px',
                             background: 'rgba(255,255,255,0.035)',
                             color: '#fff',

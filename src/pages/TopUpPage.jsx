@@ -162,7 +162,7 @@ export default function TopUpPage() {
               className="glass"
               style={{
                 padding: '1rem', borderRadius: '10px', marginBottom: '1.5rem',
-                border: '1px solid rgba(99,102,241,0.3)'
+                border: '1px solid rgba(140,242,155,0.3)'
               }}
             >
               <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.3rem' }}>

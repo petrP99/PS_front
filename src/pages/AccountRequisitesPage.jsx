@@ -33,9 +33,9 @@ export default function AccountRequisitesPage() {
           onClick={() => navigate(`/accounts/${id}`)}
           style={{
             padding: '0.75rem 1.5rem',
-            border: '1px solid rgba(99,102,241,0.4)',
+            border: '1px solid rgba(140,242,155,0.4)',
             borderRadius: '10px',
-            background: 'rgba(99,102,241,0.2)',
+            background: 'rgba(140,242,155,0.14)',
             color: '#fff',
             cursor: 'pointer',
             fontWeight: 600,

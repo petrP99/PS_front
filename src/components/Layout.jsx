@@ -231,7 +231,7 @@ export default function Layout({ children }) {
       )}
 
       <main className={`app-main ${isHomePage ? 'app-main--home' : 'app-main--default'}`}>
-        <div className="app-main__content">{children}</div>
+        <div className={`app-main__content ${isHomePage ? '' : 'app-main__content--themed'}`}>{children}</div>
       </main>
     </div>
   );
