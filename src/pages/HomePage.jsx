@@ -1,250 +1,607 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getCashbackAccruals, getCurrencyRates, getMyAccounts } from '../api';
-import tradingBackground from '../assets/home-trading-background.png';
+import {
+  getCashbackAccruals,
+  getCurrentCashbackCategories,
+  getCurrencyRates,
+  getMyAccounts,
+  getPayments,
+  getReplenishments,
+  getTransferHistory,
+} from '../api';
+import './HomePage.css';
 
 const currencies = ['RUB', 'USD', 'CNY'];
-const currencySigns = {
-  RUB: '₽',
-  USD: '$',
-  CNY: '¥',
+
+const currencyMeta = {
+  RUB: { sign: '₽', color: '#8cf29b', name: 'Российский рубль' },
+  USD: { sign: '$', color: '#6dd6ff', name: 'Доллар США' },
+  CNY: { sign: '¥', color: '#8b7cff', name: 'Китайский юань' },
 };
+
+const cashbackCategoryMeta = {
+  MOBILE_PHONE: { label: 'Мобильная связь', icon: 'phone' },
+  INTERNET: { label: 'Интернет', icon: 'globe' },
+  UTILITIES: { label: 'ЖКХ', icon: 'home' },
+};
+
+const quickActions = [
+  {
+    icon: 'phone',
+    eyebrow: 'СБП',
+    title: 'По телефону',
+    description: 'Мгновенный перевод',
+    path: '/transfers/phone',
+  },
+  {
+    icon: 'send',
+    eyebrow: 'CARD',
+    title: 'На карту',
+    description: 'По номеру карты',
+    path: '/transfers/card',
+  },
+  {
+    icon: 'plus',
+    eyebrow: 'TOP UP',
+    title: 'Пополнить',
+    description: 'Внести средства',
+    path: '/replenishment',
+  },
+  {
+    icon: 'receipt',
+    eyebrow: 'BILLS',
+    title: 'Оплатить',
+    description: 'Услуги и счета',
+    path: '/payments',
+  },
+];
 
 export default function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState([]);
   const [rates, setRates] = useState(null);
-  const [balanceCurrency, setBalanceCurrency] = useState('RUB');
-  const [balanceLoading, setBalanceLoading] = useState(true);
-  const [balanceError, setBalanceError] = useState(false);
   const [cashbackAccruals, setCashbackAccruals] = useState([]);
+  const [cashbackCategories, setCashbackCategories] = useState([]);
+  const [recentOperations, setRecentOperations] = useState([]);
+  const [balanceCurrency, setBalanceCurrency] = useState('RUB');
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const [cashbackLoading, setCashbackLoading] = useState(true);
   const [cashbackError, setCashbackError] = useState(false);
-  const [isCashbackHovered, setCashbackHovered] = useState(false);
-  const [hoveredQuickAction, setHoveredQuickAction] = useState(null);
-  const [hoveredFeature, setHoveredFeature] = useState(null);
+  const [cashbackCategoriesLoading, setCashbackCategoriesLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyAvailability, setHistoryAvailability] = useState('available');
 
   useEffect(() => {
-    const loadBalance = async () => {
-      try {
-        const [accountsData, ratesData] = await Promise.all([
-          getMyAccounts(),
-          getCurrencyRates(),
-        ]);
-        setAccounts(accountsData);
-        setRates(ratesData);
-      } catch (error) {
-        console.error('Ошибка расчета общего баланса:', error);
-        setBalanceError(true);
-      } finally {
-        setBalanceLoading(false);
+    let mounted = true;
+
+    const loadDashboard = async () => {
+      const [
+        accountsResult,
+        ratesResult,
+        cashbackResult,
+        categoriesResult,
+        transfersResult,
+        paymentsResult,
+        replenishmentsResult,
+      ] = await Promise.allSettled([
+        getMyAccounts(),
+        getCurrencyRates(),
+        getCashbackAccruals(),
+        getCurrentCashbackCategories(),
+        getTransferHistory(),
+        getPayments(),
+        getReplenishments(),
+      ]);
+
+      if (!mounted) return;
+
+      if (accountsResult.status === 'fulfilled') {
+        setAccounts(Array.isArray(accountsResult.value) ? accountsResult.value : []);
+      } else {
+        console.error('Ошибка загрузки счетов:', accountsResult.reason);
       }
-    };
 
-    loadBalance();
-  }, []);
+      if (ratesResult.status === 'fulfilled') {
+        setRates(ratesResult.value);
+      } else {
+        console.error('Ошибка загрузки курсов:', ratesResult.reason);
+      }
 
-  useEffect(() => {
-    const loadCashback = async () => {
-      try {
-        const result = await getCashbackAccruals();
-        setCashbackAccruals(Array.isArray(result) ? result : []);
-      } catch (error) {
-        console.error('Ошибка загрузки кешбэка:', error);
+      if (cashbackResult.status === 'fulfilled') {
+        setCashbackAccruals(Array.isArray(cashbackResult.value) ? cashbackResult.value : []);
+      } else {
+        console.error('Ошибка загрузки кешбэка:', cashbackResult.reason);
         setCashbackError(true);
-      } finally {
-        setCashbackLoading(false);
       }
+
+      if (categoriesResult.status === 'fulfilled') {
+        setCashbackCategories(
+          Array.isArray(categoriesResult.value?.categories)
+            ? categoriesResult.value.categories
+            : []
+        );
+      } else {
+        console.error('Ошибка загрузки категорий кешбэка:', categoriesResult.reason);
+      }
+
+      const transfers = transfersResult.status === 'fulfilled'
+        && Array.isArray(transfersResult.value?.content)
+        ? transfersResult.value.content
+        : [];
+      const payments = paymentsResult.status === 'fulfilled'
+        && Array.isArray(paymentsResult.value?.content)
+        ? paymentsResult.value.content
+        : [];
+      const replenishments = replenishmentsResult.status === 'fulfilled'
+        && Array.isArray(replenishmentsResult.value)
+        ? replenishmentsResult.value
+        : [];
+      const historyResults = [transfersResult, paymentsResult, replenishmentsResult];
+      const failedHistoryRequests = historyResults.filter(result => result.status === 'rejected').length;
+
+      setRecentOperations(buildRecentOperations(transfers, payments, replenishments).slice(0, 4));
+      setHistoryAvailability(
+        failedHistoryRequests === historyResults.length
+          ? 'unavailable'
+          : failedHistoryRequests > 0
+            ? 'partial'
+            : 'available'
+      );
+
+      setDashboardLoading(false);
+      setCashbackLoading(false);
+      setCashbackCategoriesLoading(false);
+      setHistoryLoading(false);
     };
 
-    loadCashback();
+    loadDashboard();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const totalBalance = rates
-    ? accounts.reduce((totalRub, account) => (
-        totalRub + Number(account.balance || 0) * Number(rates[account.currency])
-      ), 0) / Number(rates[balanceCurrency])
-    : null;
+  const accountOverview = useMemo(() => {
+    if (!rates) return { accounts: [], totalRub: null };
+
+    const preparedAccounts = accounts.map(account => {
+      const balance = Number(account.balance || 0);
+      const rate = getRate(account.currency, rates);
+      const balanceRub = Number.isFinite(balance) && Number.isFinite(rate)
+        ? balance * rate
+        : 0;
+
+      return { ...account, balanceRub };
+    });
+
+    const totalRub = preparedAccounts.reduce((total, account) => total + account.balanceRub, 0);
+    return {
+      accounts: preparedAccounts.sort((a, b) => b.balanceRub - a.balanceRub),
+      totalRub,
+    };
+  }, [accounts, rates]);
+
+  const totalBalance = useMemo(() => {
+    const selectedRate = getRate(balanceCurrency, rates);
+    if (!Number.isFinite(accountOverview.totalRub) || !Number.isFinite(selectedRate) || selectedRate === 0) {
+      return null;
+    }
+    return accountOverview.totalRub / selectedRate;
+  }, [accountOverview.totalRub, balanceCurrency, rates]);
 
   const currentMonthCashback = useMemo(
     () => calculateCurrentMonthCashback(cashbackAccruals, rates),
     [cashbackAccruals, rates]
   );
 
+  const firstName = user?.firstName || user?.given_name || user?.preferred_username || 'друг';
   const switchBalanceCurrency = () => {
-    setBalanceCurrency(current => {
-      const currentIndex = currencies.indexOf(current);
+    setBalanceCurrency(currentCurrency => {
+      const currentIndex = currencies.indexOf(currentCurrency);
       return currencies[(currentIndex + 1) % currencies.length];
     });
   };
 
-  const features = [
-    { icon: '🔄', title: 'Между своими счетами', desc: 'Перевод между счетами', accent: '#fca5a5', bg: 'linear-gradient(135deg, rgba(39,39,42,0.9), rgba(24,24,27,0.96))', hoverBg: 'linear-gradient(135deg, rgba(127,29,29,0.34), rgba(24,24,27,0.98))', glow: 'rgba(239,68,68,0.14)', path: '/transfers/accounts' },
-    { icon: '💰', title: 'Пополнения', desc: 'Пополнить счёт', accent: '#86efac', bg: 'linear-gradient(135deg, rgba(39,39,42,0.9), rgba(22,28,25,0.96))', hoverBg: 'linear-gradient(135deg, rgba(22,101,52,0.34), rgba(24,24,27,0.98))', glow: 'rgba(34,197,94,0.14)', path: '/replenishment' },
-    { icon: '🧾', title: 'Оплата услуг', desc: 'Телефон, интернет, ЖКХ', accent: '#fecaca', bg: 'linear-gradient(135deg, rgba(38,38,38,0.9), rgba(24,24,27,0.96))', hoverBg: 'linear-gradient(135deg, rgba(153,27,27,0.32), rgba(39,39,42,0.98))', glow: 'rgba(220,38,38,0.13)', path: '/payments' },
-    { icon: '🏦', title: 'Мои карты', desc: 'Управление картами', accent: '#bfdbfe', bg: 'linear-gradient(135deg, rgba(32,32,35,0.9), rgba(20,28,40,0.94))', hoverBg: 'linear-gradient(135deg, rgba(30,64,175,0.28), rgba(30,41,59,0.98))', glow: 'rgba(37,99,235,0.12)', path: '/cards' },
-    { icon: '📋', title: 'История', desc: 'Все операции', accent: '#d4d4d8', bg: 'linear-gradient(135deg, rgba(45,45,48,0.9), rgba(23,23,23,0.98))', hoverBg: 'linear-gradient(135deg, rgba(63,63,70,0.78), rgba(24,24,27,0.98))', glow: 'rgba(161,161,170,0.12)', path: '/history' },
-  ];
-
-  const quickActions = [
-    { icon: '📱', label: 'Перевод по телефону', path: '/transfers/phone', accent: '#fca5a5', bg: 'rgba(39,39,42,0.66)', hoverBg: 'rgba(127,29,29,0.32)' },
-    { icon: '💳', label: 'Перевод на карту', path: '/transfers/card', accent: '#fecaca', bg: 'rgba(39,39,42,0.66)', hoverBg: 'rgba(153,27,27,0.3)' },
-    { icon: '➕', label: 'Создать карту', path: '/cards?create=true', accent: '#bfdbfe', bg: 'rgba(24,24,27,0.72)', hoverBg: 'rgba(30,64,175,0.28)' },
-  ];
-
   return (
-    <div style={homePageStyle}>
-      <div style={homeBackgroundImageStyle} aria-hidden="true" />
-      {user && (
-        <div style={homeHeroStyle}>
-          <div style={{
-            position: 'absolute',
-            top: '-40%',
-            right: '-10%',
-            width: '300px',
-            height: '300px',
-            background: 'radial-gradient(circle, rgba(148,163,184,0.11) 0%, transparent 70%)',
-            borderRadius: '50%',
-            animation: 'float 6s ease-in-out infinite',
-          }} />
-          <div style={{
-            position: 'absolute',
-            left: '-120px',
-            bottom: '-170px',
-            width: '320px',
-            height: '320px',
-            background: 'radial-gradient(circle, rgba(30,64,175,0.11) 0%, transparent 68%)',
-            borderRadius: '50%',
-            animation: 'float 8s ease-in-out infinite',
-          }} />
-          <div style={homeSummaryGridStyle}>
-            <div style={{ minWidth: 0 }}>
-              <span style={{
-                fontSize: '0.8rem',
-                color: 'rgba(255,255,255,0.4)',
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-              }}>
-                Ваш баланс
-              </span>
+    <div className="home-terminal">
+      <div className="home-terminal__grid" aria-hidden="true" />
+      <div className="home-terminal__glow home-terminal__glow--mint" aria-hidden="true" />
+      <div className="home-terminal__glow home-terminal__glow--violet" aria-hidden="true" />
+
+      <section className="home-terminal__intro">
+        <div>
+          <div className="home-terminal__breadcrumb">
+            <span>PF / OVERVIEW</span>
+            <span className="home-terminal__breadcrumb-line" />
+            <span>{getGreeting()}</span>
+          </div>
+          <h1>{firstName}, всё под контролем.</h1>
+          <p>Счета, карты и денежные потоки — в одном финансовом пространстве.</p>
+        </div>
+
+        <div className="home-terminal__today">
+          <span>Сегодня</span>
+          <strong>{formatCurrentDate()}</strong>
+        </div>
+      </section>
+
+      <section className="home-terminal__overview-grid">
+        <article className="home-terminal__panel home-terminal__balance-panel">
+          <div className="home-terminal__panel-noise" aria-hidden="true" />
+          <header className="home-terminal__panel-header">
+            <div>
+              <span className="home-terminal__label">TOTAL PORTFOLIO</span>
+              <h2>Общий баланс</h2>
+            </div>
+          </header>
+
+          <div className="home-terminal__balance-panel-body">
+            <div className="home-terminal__balance-block">
+              <span className="home-terminal__balance-caption">Доступно на всех счетах</span>
               <button
                 type="button"
+                className={`home-terminal__balance ${dashboardLoading ? 'is-loading' : ''}`}
                 onClick={switchBalanceCurrency}
-                disabled={balanceLoading || balanceError}
-                title="Нажмите, чтобы изменить валюту"
-                style={homeBalanceStyle}
+                disabled={dashboardLoading || !Number.isFinite(totalBalance)}
+                title="Нажмите, чтобы изменить валюту баланса"
+                aria-label={`Общий баланс в ${balanceCurrency}. Нажмите, чтобы изменить валюту`}
               >
-                {balanceLoading
-                  ? 'Загрузка...'
-                  : balanceError || !Number.isFinite(totalBalance)
-                    ? 'Не удалось рассчитать'
-                    : `${formatMoney(totalBalance)} ${currencySigns[balanceCurrency]}`}
+                {dashboardLoading
+                  ? '— — —'
+                  : Number.isFinite(totalBalance)
+                    ? `${formatMoney(totalBalance)} ${getCurrencyMeta(balanceCurrency).sign}`
+                    : 'Недоступно'}
               </button>
-              {!balanceLoading && !balanceError && (
-                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                  Нажмите на баланс, чтобы изменить валюту
-                </div>
-              )}
-              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
-                {user.firstName || user.preferred_username} · {new Date().toLocaleDateString('ru-RU')}
-              </p>
             </div>
-
-            <button
-              type="button"
-              onClick={() => navigate('/cashback')}
-              onMouseEnter={() => setCashbackHovered(true)}
-              onMouseLeave={() => setCashbackHovered(false)}
-              style={{
-                ...cashbackSummaryStyle,
-                ...(isCashbackHovered ? cashbackSummaryHoverStyle : {}),
-              }}
-            >
-              <span style={cashbackLabelStyle}>Кешбэк за текущий месяц</span>
-              <strong style={cashbackValueStyle}>
-                {cashbackLoading
-                  ? 'Загрузка...'
-                  : cashbackError || currentMonthCashback === null
-                    ? 'Недоступен'
-                    : `${formatCashbackMoney(currentMonthCashback)} руб`}
-              </strong>
-            </button>
+            <span className="home-terminal__balance-hint">
+              <span>{balanceCurrency}</span>
+              Нажмите на сумму, чтобы сменить валюту
+            </span>
           </div>
-        </div>
-      )}
+        </article>
 
-      {/* Быстрые действия */}
-      <h2 style={homeSectionTitleStyle}>
-        БЫСТРЫЕ ДЕЙСТВИЯ
-      </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2.5rem' }}>
-        {quickActions.map((action, i) => (
-          <button
-            key={action.label}
-            type="button"
-            onClick={() => navigate(action.path)}
-            onMouseEnter={() => setHoveredQuickAction(action.label)}
-            onMouseLeave={() => setHoveredQuickAction(null)}
-            style={{
-              ...quickActionStyle,
-              background: hoveredQuickAction === action.label ? action.hoverBg : action.bg,
-              borderColor: hoveredQuickAction === action.label ? `${action.accent}66` : 'rgba(255,255,255,0.08)',
-              boxShadow: hoveredQuickAction === action.label ? `0 18px 38px ${action.accent}18` : '0 12px 28px rgba(0,0,0,0.18)',
-              transform: hoveredQuickAction === action.label ? 'translateY(-2px)' : 'translateY(0)',
-              animation: `fadeInUp 0.5s ${0.1 + i * 0.1}s ease-out both`,
-            }}>
-            <div style={{ ...quickActionIconStyle, color: action.accent, background: `${action.accent}14`, borderColor: `${action.accent}30` }}>{action.icon}</div>
-            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>{action.label}</div>
-          </button>
-        ))}
-      </div>
+        <button
+          type="button"
+          className="home-terminal__panel home-terminal__accounts-panel"
+          onClick={() => navigate('/accounts')}
+        >
+              <span className="home-terminal__accounts-square-header">
+                <span>
+                  <small>ASSETS</small>
+                  <strong>Мои счета</strong>
+                </span>
+                <span className="home-terminal__accounts-square-arrow"><Icon name="arrow-up" /></span>
+              </span>
 
-      {/* Услуги */}
-      <h2 style={homeSectionTitleStyle}>
-        ОСНОВНЫЕ ДЕЙСТВИЯ
-      </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
-        {features.map((f, i) => (
-          <button
-            key={f.title}
-            type="button"
-            onClick={() => f.path && navigate(f.path)}
-            disabled={!f.path}
-            onMouseEnter={() => setHoveredFeature(f.title)}
-            onMouseLeave={() => setHoveredFeature(null)}
-            style={{
-              ...featureCardStyle,
-              background: hoveredFeature === f.title ? f.hoverBg : f.bg,
-              boxShadow: hoveredFeature === f.title ? `0 24px 54px ${f.glow}, inset 0 1px 0 rgba(255,255,255,0.08)` : `0 16px 36px rgba(0,0,0,0.24), 0 0 26px ${f.glow}`,
-              borderColor: hoveredFeature === f.title ? `${f.accent}55` : 'rgba(255,255,255,0.08)',
-              opacity: f.path ? 1 : 0.55,
-              cursor: f.path ? 'pointer' : 'default',
-              transform: hoveredFeature === f.title ? 'translateY(-3px)' : 'translateY(0)',
-              animation: `fadeInUp 0.5s ${0.2 + i * 0.1}s ease-out both`,
-            }}>
-            <div style={{ ...featureIconStyle, color: f.accent, background: `${f.accent}12`, borderColor: `${f.accent}2e` }}>{f.icon}</div>
-            <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#e8e8f0', marginBottom: '0.3rem' }}>{f.title}</div>
-            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>{f.desc}</div>
-          </button>
-        ))}
-      </div>
+              <span className="home-terminal__accounts-square-list">
+                {dashboardLoading ? (
+                  <span className="home-terminal__accounts-square-loading">Загрузка...</span>
+                ) : accountOverview.accounts.length > 0 ? (
+                  accountOverview.accounts.slice(0, 3).map(account => {
+                    const meta = getCurrencyMeta(account.currency);
+                    return (
+                      <span className="home-terminal__accounts-square-row" key={account.id}>
+                        <i style={{ background: meta.color }} />
+                        <span>{account.name || account.accountName || `${account.currency} счёт`}</span>
+                        <strong>{formatCompactMoney(account.balance || 0)} {meta.sign}</strong>
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="home-terminal__accounts-square-empty">Счетов пока нет</span>
+                )}
+              </span>
+
+              <span className="home-terminal__accounts-square-footer">
+                {accounts.length} {pluralize(accounts.length, 'счёт', 'счёта', 'счетов')}
+                <span>Открыть</span>
+              </span>
+        </button>
+
+        <aside
+          className="home-terminal__panel home-terminal__cashback-desk"
+          role="link"
+          tabIndex={0}
+          onClick={() => navigate('/cashback')}
+          onKeyDown={event => handlePanelKeyDown(event, () => navigate('/cashback'))}
+        >
+          <header className="home-terminal__panel-header">
+            <div>
+              <span className="home-terminal__label">CASHBACK</span>
+              <h2>Кешбэк</h2>
+            </div>
+            <span className="home-terminal__cashback-desk-arrow"><Icon name="arrow-up" /></span>
+          </header>
+
+          <div className="home-terminal__cashback-total">
+            <span className="home-terminal__cashback-period">
+              Накоплено за <b>{formatCurrentMonth()}</b>
+            </span>
+            <strong className="home-terminal__cashback-amount">
+              {cashbackLoading
+                ? '— — —'
+                : cashbackError || currentMonthCashback === null
+                  ? 'Недоступно'
+                  : `${formatWholeMoney(currentMonthCashback)} ₽`}
+            </strong>
+          </div>
+
+          <div className="home-terminal__cashback-categories">
+            <span className="home-terminal__cashback-categories-label">Выбранные категории</span>
+            <div className="home-terminal__cashback-category-list">
+              {cashbackCategoriesLoading ? (
+                <span className="home-terminal__cashback-category-empty">Загрузка категорий...</span>
+              ) : cashbackCategories.length > 0 ? (
+                cashbackCategories.map(category => {
+                  const categoryMeta = getCashbackCategoryMeta(category.recipient);
+                  return (
+                    <span className="home-terminal__cashback-category" key={category.recipient}>
+                      <span className="home-terminal__cashback-category-icon">
+                        <Icon name={categoryMeta.icon} />
+                      </span>
+                      <span>
+                        <strong>{categoryMeta.label}</strong>
+                        <small>{formatCategoryPercent(category.percent)} кешбэк</small>
+                      </span>
+                    </span>
+                  );
+                })
+              ) : (
+                <span className="home-terminal__cashback-category-empty">
+                  Категории пока не выбраны
+                </span>
+              )}
+            </div>
+          </div>
+
+          <footer className="home-terminal__cashback-footer">
+            <span>Открыть программу кешбэка</span>
+            <Icon name="arrow" />
+          </footer>
+        </aside>
+      </section>
+
+      <section className="home-terminal__lower-grid home-terminal__lower-grid--dashboard">
+        <aside className="home-terminal__panel home-terminal__quick-rail">
+          <header className="home-terminal__panel-header">
+            <div>
+              <span className="home-terminal__label">COMMANDS</span>
+              <h2>Быстрые действия</h2>
+            </div>
+          </header>
+
+          <div className="home-terminal__action-grid home-terminal__action-grid--rail">
+            {quickActions.map((action, index) => (
+              <button
+                key={action.title}
+                type="button"
+                className="home-terminal__action"
+                onClick={() => navigate(action.path)}
+                style={{ '--action-index': index }}
+              >
+                <span className="home-terminal__action-icon"><Icon name={action.icon} /></span>
+                <span className="home-terminal__action-copy">
+                  <small>{action.eyebrow}</small>
+                  <strong>{action.title}</strong>
+                  <span>{action.description}</span>
+                </span>
+                <span className="home-terminal__action-arrow"><Icon name="arrow-up" /></span>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        <article
+          className="home-terminal__panel home-terminal__history-feed"
+          role="link"
+          tabIndex={0}
+          onClick={() => navigate('/history')}
+          onKeyDown={event => handlePanelKeyDown(event, () => navigate('/history'))}
+        >
+          <header className="home-terminal__panel-header">
+            <div>
+              <span className="home-terminal__label">ACTIVITY LOG</span>
+              <h2>История операций</h2>
+            </div>
+            <span className="home-terminal__text-button">
+              Все операции <Icon name="arrow" />
+            </span>
+          </header>
+
+          <div className="home-terminal__history-feed-list">
+            {historyLoading ? (
+              <HistorySkeleton />
+            ) : historyAvailability === 'unavailable' ? (
+              <div className="home-terminal__history-feed-state">
+                <Icon name="history" />
+                <strong>История временно недоступна</strong>
+                <span>Откройте раздел истории, чтобы повторить загрузку.</span>
+              </div>
+            ) : recentOperations.length > 0 ? (
+              recentOperations.slice(0, 4).map(operation => (
+                <div className="home-terminal__history-feed-row" key={operation.key}>
+                  <span className={`home-terminal__history-feed-icon home-terminal__history-feed-icon--${operation.type}`}>
+                    <Icon name={operation.icon} />
+                  </span>
+                  <span className="home-terminal__history-feed-copy">
+                    <strong>{operation.title}</strong>
+                    <small>{formatOperationDate(operation.date)} · {operation.purpose}</small>
+                  </span>
+                  <span className={`home-terminal__history-feed-amount ${operation.incoming ? 'is-positive' : ''} ${operation.status === 'FAILED' ? 'is-failed' : ''}`}>
+                    <strong>
+                      {operation.sign}{formatCompactMoney(operation.amount)} {getCurrencyMeta(operation.currency).sign}
+                    </strong>
+                    <small>{getOperationStatusLabel(operation.status)}</small>
+                  </span>
+                  <Icon name="arrow" />
+                </div>
+              ))
+            ) : (
+              <div className="home-terminal__history-feed-state">
+                <Icon name="history" />
+                <strong>Операций пока нет</strong>
+                <span>Новые переводы, платежи и пополнения появятся здесь.</span>
+              </div>
+            )}
+          </div>
+
+          {historyAvailability === 'partial' && (
+            <footer className="home-terminal__history-feed-notice">
+              Часть операций временно недоступна
+            </footer>
+          )}
+        </article>
+
+      </section>
     </div>
   );
 }
 
-function formatMoney(value) {
-  return Number(value).toLocaleString('ru-RU', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+function HistorySkeleton() {
+  return (
+    <div className="home-terminal__history-skeleton" aria-label="Загрузка истории операций">
+      {[0, 1, 2, 3].map(item => <span key={item} />)}
+    </div>
+  );
 }
 
-function formatCashbackMoney(value) {
-  return Math.round(Number(value || 0)).toLocaleString('ru-RU', {
-    maximumFractionDigits: 0,
+function Icon({ name }) {
+  const paths = {
+    phone: <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.08 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92Z" /></>,
+    send: <><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></>,
+    plus: <><path d="M12 5v14" /><path d="M5 12h14" /></>,
+    receipt: <><path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2Z" /><path d="M16 8h-6" /><path d="M16 12h-6" /></>,
+    wallet: <><path d="M20 7V6a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v8a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V7" /><path d="M16 14h.01" /></>,
+    card: <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /><path d="M6 15h2" /></>,
+    globe: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a15 15 0 0 1 0 18" /><path d="M12 3a15 15 0 0 0 0 18" /></>,
+    home: <><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10" /><path d="M9 20v-6h6v6" /></>,
+    spark: <><path d="m12 3-1.7 4.3L6 9l4.3 1.7L12 15l1.7-4.3L18 9l-4.3-1.7Z" /><path d="m5 16-.8 2.2L2 19l2.2.8L5 22l.8-2.2L8 19l-2.2-.8Z" /><path d="m19 15-.7 1.3L17 17l1.3.7L19 19l.7-1.3L21 17l-1.3-.7Z" /></>,
+    arrow: <><path d="m9 18 6-6-6-6" /></>,
+    'arrow-up': <><path d="M7 17 17 7" /><path d="M7 7h10v10" /></>,
+    activity: <><path d="M3 12h4l2-7 4 14 2-7h6" /></>,
+    history: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l3 2" /></>,
+  };
+
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {paths[name] || paths.wallet}
+    </svg>
+  );
+}
+
+function getRate(currency, rates) {
+  if (!rates) return Number.NaN;
+  if (currency === 'RUB') return Number(rates.RUB ?? 1);
+  return Number(rates[currency]);
+}
+
+function getCurrencyMeta(currency) {
+  return currencyMeta[currency] || {
+    sign: currency || '¤',
+    color: '#f5c76b',
+    name: currency || 'Валюта',
+  };
+}
+
+function getCashbackCategoryMeta(recipient) {
+  return cashbackCategoryMeta[recipient] || {
+    label: recipient || 'Другая категория',
+    icon: 'spark',
+  };
+}
+
+function buildRecentOperations(transfers, payments, replenishments) {
+  const transferOperations = transfers.map(transfer => {
+    const isAccountTransfer = transfer.operationType === 'ACCOUNT';
+    const amount = getTransferDisplayAmount(transfer);
+    const incoming = !isAccountTransfer && Boolean(transfer.incoming);
+
+    return {
+      key: `transfer-${transfer.id}`,
+      type: 'transfer',
+      icon: 'send',
+      date: transfer.timeOfTransfer,
+      title: isAccountTransfer
+        ? 'Между своими счетами'
+        : transfer.counterparty || 'Перевод',
+      purpose: isAccountTransfer
+        ? `${formatAccountName(transfer.accountFromName, transfer.accountFrom)} → ${formatAccountName(transfer.accountToName, transfer.accountTo)}`
+        : transfer.message || (incoming ? 'Входящий перевод' : 'Исходящий перевод'),
+      amount: amount.value,
+      currency: amount.currency,
+      sign: incoming ? '+' : '−',
+      incoming,
+      status: transfer.status,
+    };
   });
+
+  const paymentOperations = payments.map(payment => {
+    const category = getCashbackCategoryMeta(payment.recipient);
+    const destination = String(payment.paymentDestination || '').trim();
+    return {
+      key: `payment-${payment.id}`,
+      type: 'payment',
+      icon: 'receipt',
+      date: payment.timeOfPay,
+      title: category.label || 'Оплата услуги',
+      purpose: destination
+        ? payment.recipient === 'MOBILE_PHONE'
+          ? `Телефон ${destination}`
+          : `Договор № ${destination}`
+        : 'Оплата услуги',
+      amount: Number(payment.amount || 0),
+      currency: payment.currency || 'RUB',
+      sign: '−',
+      incoming: false,
+      status: payment.status,
+    };
+  });
+
+  const replenishmentOperations = replenishments.map(replenishment => ({
+    key: `replenishment-${replenishment.id}`,
+    type: 'replenishment',
+    icon: 'plus',
+    date: replenishment.timeOfReplenishment,
+    title: 'Пополнение',
+    purpose: replenishment.accountName
+      || `Счёт •• ${String(replenishment.accountId || '').slice(-4)}`,
+    amount: Number(replenishment.amount || 0),
+    currency: replenishment.currency || 'RUB',
+    sign: '+',
+    incoming: true,
+    status: replenishment.status,
+  }));
+
+  return [...transferOperations, ...paymentOperations, ...replenishmentOperations]
+    .filter(operation => !Number.isNaN(new Date(operation.date).getTime()))
+    .sort((left, right) => new Date(right.date) - new Date(left.date));
+}
+
+function getTransferDisplayAmount(transfer) {
+  if (transfer.operationType === 'ACCOUNT') {
+    return {
+      value: Number(transfer.amount || 0),
+      currency: transfer.currency || 'RUB',
+    };
+  }
+
+  if (transfer.incoming) {
+    return {
+      value: Number(transfer.amountTo ?? transfer.amount ?? 0),
+      currency: transfer.targetCurrency || transfer.currency || 'RUB',
+    };
+  }
+
+  return {
+    value: Number(transfer.debitAmount ?? transfer.amount ?? 0),
+    currency: transfer.currency || 'RUB',
+  };
+}
+
+function formatAccountName(name, id) {
+  return name || `Счёт •• ${String(id || '').slice(-4)}`;
 }
 
 function calculateCurrentMonthCashback(accruals, rates) {
@@ -254,196 +611,113 @@ function calculateCurrentMonthCashback(accruals, rates) {
   return accruals.reduce((total, accrual) => {
     const paymentDate = new Date(accrual.paymentTime);
     if (
-      paymentDate.getFullYear() !== now.getFullYear()
+      Number.isNaN(paymentDate.getTime())
+      || paymentDate.getFullYear() !== now.getFullYear()
       || paymentDate.getMonth() !== now.getMonth()
     ) {
       return total;
     }
 
     const amount = Number(accrual.cashbackAmount || 0);
-    const rate = Number(rates[accrual.currency] || 1);
+    const rate = getRate(accrual.currency || 'RUB', rates);
     if (!Number.isFinite(amount) || !Number.isFinite(rate)) return total;
     return total + amount * rate;
   }, 0);
 }
 
-const homePageStyle = {
-  position: 'relative',
-  isolation: 'isolate',
-  overflow: 'hidden',
-  minHeight: 'calc(100vh - 140px)',
-  animation: 'fadeInUp 0.5s ease-out',
-};
+function formatMoney(value) {
+  return Number(value).toLocaleString('ru-RU', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
 
-const homeBackgroundImageStyle = {
-  position: 'fixed',
-  top: '76px',
-  right: 0,
-  bottom: 0,
-  left: '260px',
-  zIndex: 0,
-  pointerEvents: 'none',
-  backgroundImage: `linear-gradient(180deg, rgba(27,27,31,0.08), rgba(27,27,31,0.62)), url(${tradingBackground})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  opacity: 0.24,
-  filter: 'blur(1px) saturate(0.9)',
-  transform: 'scale(1.01)',
-};
+function formatCompactMoney(value) {
+  return Number(value || 0).toLocaleString('ru-RU', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
 
-const homeHeroStyle = {
-  padding: '2rem 2.5rem',
-  marginBottom: '2rem',
-  position: 'relative',
-  zIndex: 1,
-  overflow: 'hidden',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '22px',
-  background: `
-    radial-gradient(circle at 14% 10%, rgba(148,163,184,0.12), transparent 34%),
-    radial-gradient(circle at 78% 18%, rgba(30,64,175,0.13), transparent 32%),
-    radial-gradient(circle at 88% 86%, rgba(34,197,94,0.08), transparent 30%),
-    linear-gradient(135deg, rgba(48,48,52,0.94), rgba(28,28,31,0.98) 48%, rgba(20,20,22,0.98))
-  `,
-  boxShadow: '0 26px 70px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.07)',
-};
+function formatWholeMoney(value) {
+  return Math.round(Number(value || 0)).toLocaleString('ru-RU');
+}
 
-const homeSectionTitleStyle = {
-  position: 'relative',
-  zIndex: 1,
-  fontSize: '1.1rem',
-  fontWeight: 650,
-  color: 'rgba(245,245,245,0.72)',
-  marginBottom: '1rem',
-  letterSpacing: '0.5px',
-};
+function formatCategoryPercent(value) {
+  const percent = Number(value || 0);
+  return `${Number.isFinite(percent) ? percent.toLocaleString('ru-RU', { maximumFractionDigits: 1 }) : 0}%`;
+}
 
-const quickActionStyle = {
-  position: 'relative',
-  zIndex: 1,
-  padding: '1.2rem',
-  cursor: 'pointer',
-  textAlign: 'center',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '18px',
-  color: '#fff',
-  backdropFilter: 'blur(18px)',
-  WebkitBackdropFilter: 'blur(18px)',
-  transition: 'background 0.22s ease, border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease',
-};
+function formatCurrentMonth() {
+  const value = new Intl.DateTimeFormat('ru-RU', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
-const quickActionIconStyle = {
-  width: '36px',
-  height: '36px',
-  margin: '0 auto 0.55rem',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: '1px solid',
-  borderRadius: '12px',
-  fontSize: '1.1rem',
-};
+function formatOperationDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Дата неизвестна';
 
-const featureCardStyle = {
-  position: 'relative',
-  zIndex: 1,
-  padding: '1.5rem',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '20px',
-  color: '#fff',
-  textAlign: 'left',
-  backdropFilter: 'blur(18px)',
-  WebkitBackdropFilter: 'blur(18px)',
-  transition: 'background 0.22s ease, border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease',
-};
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const time = new Intl.DateTimeFormat('ru-RU', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 
-const featureIconStyle = {
-  width: '44px',
-  height: '44px',
-  marginBottom: '0.9rem',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: '1px solid',
-  borderRadius: '14px',
-  fontSize: '1.35rem',
-};
+  if (date.toDateString() === now.toDateString()) return `Сегодня, ${time}`;
+  if (date.toDateString() === yesterday.toDateString()) return `Вчера, ${time}`;
 
-const homeSummaryGridStyle = {
-  position: 'relative',
-  zIndex: 1,
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-  gap: '1.5rem',
-  alignItems: 'stretch',
-};
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
 
-const cashbackSummaryStyle = {
-  width: '100%',
-  maxWidth: '260px',
-  minHeight: '124px',
-  justifySelf: 'end',
-  alignSelf: 'start',
-  padding: '1rem',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '16px',
-  background: 'linear-gradient(135deg, rgba(39,39,42,0.88), rgba(17,24,39,0.94))',
-  color: '#fff',
-  cursor: 'pointer',
-  textAlign: 'left',
-  boxShadow: '0 18px 42px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.05)',
-  transition: 'background 0.22s ease, border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease',
-};
+function getOperationStatusLabel(status) {
+  const labels = {
+    SUCCESS: 'Выполнено',
+    FAILED: 'Ошибка',
+    PENDING: 'В обработке',
+    PROCESSING: 'В обработке',
+  };
+  return labels[status] || status || 'В обработке';
+}
 
-const cashbackSummaryHoverStyle = {
-  background: 'linear-gradient(135deg, rgba(39,39,42,0.95), rgba(30,64,175,0.22))',
-  borderColor: 'rgba(147,197,253,0.32)',
-  transform: 'translateY(-2px)',
-  boxShadow: '0 22px 48px rgba(0,0,0,0.32), 0 0 30px rgba(59,130,246,0.12), inset 0 1px 0 rgba(255,255,255,0.07)',
-};
+function handlePanelKeyDown(event, action) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    action();
+  }
+}
 
-const cashbackLabelStyle = {
-  display: 'block',
-  marginBottom: '0.9rem',
-  color: 'rgba(255,255,255,0.5)',
-  fontSize: '0.78rem',
-  fontWeight: 700,
-  letterSpacing: '0.7px',
-  textTransform: 'uppercase',
-};
+function formatCurrentDate() {
+  const formatted = new Intl.DateTimeFormat('ru-RU', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date());
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
 
-const cashbackValueStyle = {
-  minWidth: '42px',
-  height: '30px',
-  padding: '0 0.65rem',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: '0.65rem',
-  border: '1px solid rgba(251,191,36,0.42)',
-  borderRadius: '999px',
-  background: 'rgba(251,191,36,0.14)',
-  color: '#facc15',
-  fontSize: '0.78rem',
-  fontWeight: 850,
-  lineHeight: 1,
-  whiteSpace: 'nowrap',
-};
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 6) return 'НОЧНАЯ СЕССИЯ';
+  if (hour < 12) return 'ДОБРОЕ УТРО';
+  if (hour < 18) return 'ДОБРЫЙ ДЕНЬ';
+  return 'ДОБРЫЙ ВЕЧЕР';
+}
 
-const homeBalanceStyle = {
-  display: 'block',
-  padding: 0,
-  border: 0,
-  cursor: 'pointer',
-  textAlign: 'left',
-  fontSize: '2.8rem',
-  fontWeight: 800,
-  margin: '0.5rem 0',
-  background: 'linear-gradient(115deg, #fff8d6 0%, #f6d365 22%, #fef3c7 40%, #e5e7eb 56%, #b9c2cf 72%, #facc15 100%)',
-  backgroundSize: '260% 260%',
-  animation: 'gradientShift 4s ease infinite',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  filter: 'drop-shadow(0 0 10px rgba(250,204,21,0.32)) drop-shadow(0 0 22px rgba(229,231,235,0.18))',
-  letterSpacing: '-1px',
-};
+function pluralize(value, one, few, many) {
+  const absolute = Math.abs(Number(value)) % 100;
+  const last = absolute % 10;
+  if (absolute > 10 && absolute < 20) return many;
+  if (last > 1 && last < 5) return few;
+  if (last === 1) return one;
+  return many;
+}
