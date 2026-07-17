@@ -23,6 +23,7 @@ import PaymentMethodPage from './pages/PaymentMethodPage';
 import PaymentPage from './pages/PaymentPage';
 import PaymentHistoryDetailsPage from './pages/PaymentHistoryDetailsPage';
 import CashbackPage from './pages/CashbackPage';
+import AboutProjectPage from './pages/AboutProjectPage';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
                   <Route path="/history" element={<ProtectedRoute><TransferHistoryPage /></ProtectedRoute>} />
                   <Route path="/history/payments/:id" element={<ProtectedRoute><PaymentHistoryDetailsPage /></ProtectedRoute>} />
                   <Route path="/history/transfers/:id" element={<ProtectedRoute><TransferHistoryDetailsPage /></ProtectedRoute>} />
+                  <Route path="/about" element={<ProtectedRoute><AboutProjectPage /></ProtectedRoute>} />
                 </Routes>
               </Layout>
             </ProtectedRoute>

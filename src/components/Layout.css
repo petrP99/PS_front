@@ -498,6 +498,10 @@
   max-width: 1440px;
 }
 
+.app-main__content--wide {
+  max-width: 1480px;
+}
+
 @media (max-width: 1180px) {
   .app-shell {
     --shell-content-left: 0px;

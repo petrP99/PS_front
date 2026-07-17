@@ -1,0 +1,345 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1160" viewBox="0 0 1600 1160" role="img" aria-labelledby="title description">
+  <title id="title">C4 Container diagram of PayFlow</title>
+  <desc id="description">PayFlow architecture with client, React frontend, BFF, Keycloak, four business services, PostgreSQL databases, Redis, Kafka topics and observability stack.</desc>
+
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111716"/>
+      <stop offset="0.55" stop-color="#0a0f0e"/>
+      <stop offset="1" stop-color="#070a0b"/>
+    </linearGradient>
+    <linearGradient id="containerFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#18211e"/>
+      <stop offset="1" stop-color="#0d1211"/>
+    </linearGradient>
+    <linearGradient id="gatewayFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17302a"/>
+      <stop offset="1" stop-color="#0c1714"/>
+    </linearGradient>
+    <linearGradient id="eventFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#241e10"/>
+      <stop offset="0.5" stop-color="#17160f"/>
+      <stop offset="1" stop-color="#151913"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#8cf29b" stroke-opacity="0.025" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.32"/>
+    </filter>
+    <filter id="mintGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrowRest" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0L10 5L0 10Z" fill="#8cf29b"/>
+    </marker>
+    <marker id="arrowWs" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0L10 5L0 10Z" fill="#6dd6ff"/>
+    </marker>
+    <marker id="arrowEvent" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0L10 5L0 10Z" fill="#f5c76b"/>
+    </marker>
+    <marker id="arrowData" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0L10 5L0 10Z" fill="#77857e"/>
+    </marker>
+    <marker id="arrowSecurity" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0L10 5L0 10Z" fill="#c49cff"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Inter, "Segoe UI", sans-serif; fill: #f0f7f3; letter-spacing: -0.5px; }
+      .subtitle { font: 500 14px Inter, "Segoe UI", sans-serif; fill: #819089; }
+      .boundary-title { font: 700 13px Consolas, monospace; fill: #8cf29b; letter-spacing: 1.8px; }
+      .stereotype { font: 600 12px Consolas, monospace; fill: #718078; letter-spacing: 1px; }
+      .node-title { font: 700 20px Inter, "Segoe UI", sans-serif; fill: #edf6f1; }
+      .node-tech { font: 600 13px Consolas, monospace; fill: #8cf29b; }
+      .node-copy { font: 500 13px Inter, "Segoe UI", sans-serif; fill: #89978f; }
+      .edge-label { font: 600 12px Consolas, monospace; fill: #b7c3bd; }
+      .edge-detail { font: 500 11px Inter, "Segoe UI", sans-serif; fill: #77857e; }
+      .topic-name { font: 700 12px Consolas, monospace; fill: #f5c76b; }
+      .topic-flow { font: 500 11px Inter, "Segoe UI", sans-serif; fill: #a59b7e; }
+      .db-title { font: 700 14px Inter, "Segoe UI", sans-serif; fill: #dce7e1; }
+      .db-copy { font: 500 11px Consolas, monospace; fill: #75827c; }
+      .legend { font: 600 11px Consolas, monospace; fill: #8c9993; }
+      .rest-line { fill: none; stroke: #8cf29b; stroke-width: 2; marker-end: url(#arrowRest); }
+      .ws-line { fill: none; stroke: #6dd6ff; stroke-width: 2; stroke-dasharray: 7 5; marker-end: url(#arrowWs); }
+      .event-line { fill: none; stroke: #f5c76b; stroke-width: 2; marker-end: url(#arrowEvent); }
+      .data-line { fill: none; stroke: #77857e; stroke-width: 1.7; stroke-dasharray: 5 5; marker-end: url(#arrowData); }
+      .security-line { fill: none; stroke: #c49cff; stroke-width: 2; marker-end: url(#arrowSecurity); }
+      .node { fill: url(#containerFill); stroke: #27332f; stroke-width: 1.3; }
+      .node-accent { fill: #8cf29b; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1160" rx="28" fill="url(#canvas)"/>
+  <rect width="1600" height="1160" rx="28" fill="url(#grid)"/>
+  <circle cx="1360" cy="100" r="240" fill="#6dd6ff" opacity="0.025"/>
+  <circle cx="180" cy="920" r="280" fill="#8cf29b" opacity="0.025"/>
+
+  <g transform="translate(54 48)">
+    <text class="title">PayFlow · C4 Container Architecture</text>
+    <text y="29" class="subtitle">Общий контур запросов, событий, хранилищ и наблюдаемости</text>
+  </g>
+
+  <g transform="translate(1160 48)">
+    <line x1="0" y1="8" x2="34" y2="8" class="rest-line"/>
+    <text x="44" y="12" class="legend">REST / JSON</text>
+    <line x1="150" y1="8" x2="184" y2="8" class="ws-line"/>
+    <text x="194" y="12" class="legend">WebSocket</text>
+    <line x1="0" y1="35" x2="34" y2="35" class="event-line"/>
+    <text x="44" y="39" class="legend">Kafka event</text>
+    <line x1="150" y1="35" x2="184" y2="35" class="data-line"/>
+    <text x="194" y="39" class="legend">Data / telemetry</text>
+  </g>
+
+  <!-- Person -->
+  <g filter="url(#shadow)">
+    <rect x="44" y="145" width="180" height="132" rx="18" fill="#121918" stroke="#33413c" stroke-width="1.3"/>
+    <circle cx="84" cy="190" r="18" fill="none" stroke="#8cf29b" stroke-width="2"/>
+    <path d="M55 244c4-26 17-39 29-39s25 13 29 39" fill="none" stroke="#8cf29b" stroke-width="2"/>
+    <text x="124" y="179" class="stereotype">&lt;&lt;PERSON&gt;&gt;</text>
+    <text x="124" y="207" class="node-title">Клиент</text>
+    <text x="124" y="230" class="node-copy">Web / mobile</text>
+    <text x="124" y="250" class="node-copy">browser</text>
+  </g>
+
+  <!-- Public edge -->
+  <path d="M224 211H294" class="rest-line"/>
+  <g transform="translate(232 173)">
+    <rect width="104" height="28" rx="7" fill="#0a0f0e" stroke="#27332f"/>
+    <text x="52" y="18" text-anchor="middle" class="edge-label">HTTPS</text>
+  </g>
+
+  <!-- Frontend -->
+  <g filter="url(#shadow)">
+    <rect x="294" y="128" width="240" height="166" rx="18" class="node"/>
+    <rect x="294" y="128" width="5" height="166" rx="3" fill="#6dd6ff"/>
+    <text x="320" y="157" class="stereotype">&lt;&lt;CONTAINER · SPA&gt;&gt;</text>
+    <text x="320" y="191" class="node-title">ps_front</text>
+    <text x="320" y="218" class="node-tech">React 18 · Vite 5</text>
+    <text x="320" y="248" class="node-copy">Интерфейс клиента</text>
+    <text x="320" y="270" class="node-copy">localhost:5173</text>
+  </g>
+
+  <!-- Frontend to BFF: REST and WS -->
+  <path d="M534 192H650" class="rest-line"/>
+  <path d="M650 230H534" class="ws-line"/>
+  <g transform="translate(548 153)">
+    <rect width="92" height="28" rx="7" fill="#0a0f0e" stroke="#27332f"/>
+    <text x="46" y="18" text-anchor="middle" class="edge-label">REST + cookie</text>
+  </g>
+  <text x="592" y="253" text-anchor="middle" class="edge-detail">WebSocket updates</text>
+
+  <!-- BFF -->
+  <g filter="url(#shadow)">
+    <rect x="650" y="112" width="286" height="198" rx="20" fill="url(#gatewayFill)" stroke="#579a6a" stroke-width="1.5"/>
+    <rect x="650" y="112" width="286" height="3" rx="2" fill="#8cf29b" filter="url(#mintGlow)"/>
+    <text x="680" y="145" class="stereotype">&lt;&lt;CONTAINER · GATEWAY&gt;&gt;</text>
+    <text x="680" y="181" class="node-title">bff</text>
+    <text x="680" y="209" class="node-tech">Spring Cloud Gateway · 9091</text>
+    <text x="680" y="239" class="node-copy">OAuth2 client · session cookie</text>
+    <text x="680" y="261" class="node-copy">Token Relay · REST/WS routing</text>
+    <rect x="680" y="278" width="106" height="20" rx="10" fill="#8cf29b" opacity="0.1"/>
+    <text x="733" y="292" text-anchor="middle" class="edge-label" fill="#8cf29b">PUBLIC ENTRY</text>
+  </g>
+
+  <!-- Keycloak -->
+  <path d="M936 174H1045" class="security-line"/>
+  <g transform="translate(950 137)">
+    <rect width="82" height="28" rx="7" fill="#0a0f0e" stroke="#3b3150"/>
+    <text x="41" y="18" text-anchor="middle" class="edge-label">OIDC</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1045" y="128" width="236" height="166" rx="18" fill="#171321" stroke="#4d3c66" stroke-width="1.3"/>
+    <rect x="1045" y="128" width="5" height="166" rx="3" fill="#c49cff"/>
+    <text x="1071" y="157" class="stereotype">&lt;&lt;IDENTITY SYSTEM&gt;&gt;</text>
+    <text x="1071" y="191" class="node-title">Keycloak</text>
+    <text x="1071" y="218" class="node-tech" fill="#c49cff">OAuth2 · OIDC · JWT</text>
+    <text x="1071" y="248" class="node-copy">Realm psproject</text>
+    <text x="1071" y="270" class="node-copy">public:8081</text>
+  </g>
+
+  <!-- System boundary -->
+  <rect x="260" y="348" width="1288" height="434" rx="24" fill="#0b100f" fill-opacity="0.6" stroke="#8cf29b" stroke-opacity="0.16" stroke-width="1.5" stroke-dasharray="8 7"/>
+  <rect x="286" y="332" width="240" height="30" rx="8" fill="#0a0f0e" stroke="#24402f"/>
+  <text x="304" y="352" class="boundary-title">PAYFLOW BUSINESS SYSTEM</text>
+
+  <!-- BFF routing trunk -->
+  <path d="M793 310V386" class="rest-line"/>
+  <path d="M390 386H1374" fill="none" stroke="#8cf29b" stroke-width="2"/>
+  <path d="M390 386V414" class="rest-line"/>
+  <path d="M718 386V414" class="rest-line"/>
+  <path d="M1046 386V414" class="rest-line"/>
+  <path d="M1374 386V414" class="rest-line"/>
+  <g transform="translate(812 347)">
+    <rect width="192" height="28" rx="7" fill="#0a0f0e" stroke="#27332f"/>
+    <text x="96" y="18" text-anchor="middle" class="edge-label">REST / JWT · route by path</text>
+  </g>
+
+  <!-- Domain services -->
+  <g filter="url(#shadow)">
+    <rect x="294" y="414" width="248" height="166" rx="18" class="node"/>
+    <rect x="294" y="414" width="5" height="166" rx="3" class="node-accent"/>
+    <text x="320" y="443" class="stereotype">&lt;&lt;CONTAINER&gt;&gt;</text>
+    <text x="320" y="476" class="node-title">ps_core</text>
+    <text x="320" y="503" class="node-tech">Spring Boot · 8080</text>
+    <text x="320" y="531" class="node-copy">Клиенты · счета · карты</text>
+    <text x="320" y="553" class="node-copy">платежи · баланс · курсы</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="622" y="414" width="248" height="166" rx="18" class="node"/>
+    <rect x="622" y="414" width="5" height="166" rx="3" fill="#6dd6ff"/>
+    <text x="648" y="443" class="stereotype">&lt;&lt;CONTAINER&gt;&gt;</text>
+    <text x="648" y="476" class="node-title">ps_transfer</text>
+    <text x="648" y="503" class="node-tech">Spring Boot · 8082</text>
+    <text x="648" y="531" class="node-copy">Переводы · комиссии</text>
+    <text x="648" y="553" class="node-copy">FX preview · status WS</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="950" y="414" width="248" height="166" rx="18" class="node"/>
+    <rect x="950" y="414" width="5" height="166" rx="3" fill="#f5c76b"/>
+    <text x="976" y="443" class="stereotype">&lt;&lt;CONTAINER&gt;&gt;</text>
+    <text x="976" y="476" class="node-title">ps_cashback</text>
+    <text x="976" y="503" class="node-tech">Spring Boot · 8084</text>
+    <text x="976" y="531" class="node-copy">Категории · расчёт</text>
+    <text x="976" y="553" class="node-copy">начисления · выплаты</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1278" y="414" width="248" height="166" rx="18" class="node"/>
+    <rect x="1278" y="414" width="5" height="166" rx="3" fill="#ef9a9a"/>
+    <text x="1304" y="443" class="stereotype">&lt;&lt;CONTAINER&gt;&gt;</text>
+    <text x="1304" y="476" class="node-title">notification</text>
+    <text x="1304" y="503" class="node-tech">Spring Boot · 8083</text>
+    <text x="1304" y="531" class="node-copy">Хранение уведомлений</text>
+    <text x="1304" y="553" class="node-copy">unread count · WebSocket</text>
+  </g>
+
+  <!-- WebSocket labels from BFF -->
+  <path d="M822 310V330H1488V414" class="ws-line"/>
+  <path d="M840 330V414" class="ws-line"/>
+  <text x="1110" y="322" class="edge-detail">WS: /ws/transfers/** · /ws/notifications</text>
+
+  <!-- Internal synchronous calls -->
+  <path d="M622 512C586 512 578 602 542 602H418V580" class="rest-line"/>
+  <g transform="translate(500 584)">
+    <rect width="154" height="28" rx="7" fill="#0a0f0e" stroke="#27332f"/>
+    <text x="77" y="18" text-anchor="middle" class="edge-label">OpenFeign · context</text>
+  </g>
+  <path d="M950 538C914 538 906 624 870 624H454C432 624 418 604 418 580" class="rest-line"/>
+  <g transform="translate(735 608)">
+    <rect width="174" height="28" rx="7" fill="#0a0f0e" stroke="#27332f"/>
+    <text x="87" y="18" text-anchor="middle" class="edge-label">RestClient · payout</text>
+  </g>
+
+  <!-- Kafka bus -->
+  <g filter="url(#shadow)">
+    <rect x="338" y="648" width="1152" height="108" rx="18" fill="url(#eventFill)" stroke="#6d5a2f" stroke-width="1.4"/>
+    <rect x="338" y="648" width="5" height="108" rx="3" fill="#f5c76b"/>
+    <text x="364" y="677" class="stereotype">&lt;&lt;EVENT BUS · KAFKA JSON&gt;&gt;</text>
+    <text x="364" y="707" class="node-title">Apache Kafka</text>
+    <text x="364" y="732" class="node-copy">Async domain workflow</text>
+
+    <g transform="translate(555 671)">
+      <rect width="176" height="30" rx="8" fill="#f5c76b" opacity="0.08" stroke="#f5c76b" stroke-opacity="0.2"/>
+      <text x="12" y="19" class="topic-name">ps-transfer-execute</text>
+      <text x="12" y="45" class="topic-flow">transfer → core</text>
+    </g>
+    <g transform="translate(742 671)">
+      <rect width="168" height="30" rx="8" fill="#f5c76b" opacity="0.08" stroke="#f5c76b" stroke-opacity="0.2"/>
+      <text x="12" y="19" class="topic-name">ps-transfer-result</text>
+      <text x="12" y="45" class="topic-flow">core → transfer</text>
+    </g>
+    <g transform="translate(921 671)">
+      <rect width="168" height="30" rx="8" fill="#f5c76b" opacity="0.08" stroke="#f5c76b" stroke-opacity="0.2"/>
+      <text x="12" y="19" class="topic-name">ps-payment-events</text>
+      <text x="12" y="45" class="topic-flow">core → cashback</text>
+    </g>
+    <g transform="translate(1100 671)">
+      <rect width="160" height="30" rx="8" fill="#f5c76b" opacity="0.08" stroke="#f5c76b" stroke-opacity="0.2"/>
+      <text x="12" y="19" class="topic-name">ps-notifications</text>
+      <text x="12" y="45" class="topic-flow">core → notification</text>
+    </g>
+    <g transform="translate(1271 671)">
+      <rect width="196" height="30" rx="8" fill="#f5c76b" opacity="0.08" stroke="#f5c76b" stroke-opacity="0.2"/>
+      <text x="12" y="19" class="topic-name">ps-account-close</text>
+      <text x="12" y="45" class="topic-flow">core → core</text>
+    </g>
+  </g>
+
+  <!-- Kafka directions -->
+  <path d="M746 580V648" class="event-line"/>
+  <path d="M418 580V648" class="event-line"/>
+  <path d="M1074 580V648" class="event-line"/>
+  <path d="M1402 580V648" class="event-line"/>
+
+  <!-- Databases -->
+  <text x="54" y="840" class="boundary-title">DATA OWNERSHIP</text>
+
+  <g transform="translate(54 864)" filter="url(#shadow)">
+    <path d="M0 16C0 7 48 0 106 0s106 7 106 16v76c0 9-48 16-106 16S0 101 0 92Z" fill="#101615" stroke="#3c4a44" stroke-width="1.4"/>
+    <ellipse cx="106" cy="16" rx="106" ry="16" fill="#17201d" stroke="#3c4a44" stroke-width="1.4"/>
+    <text x="106" y="53" text-anchor="middle" class="db-title">Core DB</text>
+    <text x="106" y="76" text-anchor="middle" class="db-copy">PostgreSQL 16</text>
+  </g>
+  <path d="M418 756V805H160V864" class="data-line"/>
+
+  <g transform="translate(284 864)" filter="url(#shadow)">
+    <rect width="172" height="108" rx="18" fill="#101615" stroke="#3c4a44" stroke-width="1.4"/>
+    <path d="M26 35h120M26 54h120M26 73h120" stroke="#ef9a9a" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>
+    <text x="86" y="94" text-anchor="middle" class="db-copy">Redis 7 · core cache</text>
+  </g>
+  <path d="M418 756V820H370V864" class="data-line"/>
+
+  <g transform="translate(486 864)" filter="url(#shadow)">
+    <path d="M0 16C0 7 48 0 106 0s106 7 106 16v76c0 9-48 16-106 16S0 101 0 92Z" fill="#101615" stroke="#3c4a44" stroke-width="1.4"/>
+    <ellipse cx="106" cy="16" rx="106" ry="16" fill="#17201d" stroke="#3c4a44" stroke-width="1.4"/>
+    <text x="106" y="53" text-anchor="middle" class="db-title">Transfer DB</text>
+    <text x="106" y="76" text-anchor="middle" class="db-copy">PostgreSQL 16 · outbox</text>
+  </g>
+  <path d="M746 756V820H592V864" class="data-line"/>
+
+  <g transform="translate(722 864)" filter="url(#shadow)">
+    <path d="M0 16C0 7 48 0 106 0s106 7 106 16v76c0 9-48 16-106 16S0 101 0 92Z" fill="#101615" stroke="#3c4a44" stroke-width="1.4"/>
+    <ellipse cx="106" cy="16" rx="106" ry="16" fill="#17201d" stroke="#3c4a44" stroke-width="1.4"/>
+    <text x="106" y="53" text-anchor="middle" class="db-title">Cashback DB</text>
+    <text x="106" y="76" text-anchor="middle" class="db-copy">PostgreSQL 16</text>
+  </g>
+  <path d="M1074 756V820H828V864" class="data-line"/>
+
+  <g transform="translate(958 864)" filter="url(#shadow)">
+    <path d="M0 16C0 7 48 0 106 0s106 7 106 16v76c0 9-48 16-106 16S0 101 0 92Z" fill="#101615" stroke="#3c4a44" stroke-width="1.4"/>
+    <ellipse cx="106" cy="16" rx="106" ry="16" fill="#17201d" stroke="#3c4a44" stroke-width="1.4"/>
+    <text x="106" y="53" text-anchor="middle" class="db-title">Notification DB</text>
+    <text x="106" y="76" text-anchor="middle" class="db-copy">PostgreSQL 16</text>
+  </g>
+  <path d="M1402 756V820H1064V864" class="data-line"/>
+
+  <g transform="translate(1194 864)" filter="url(#shadow)">
+    <path d="M0 16C0 7 48 0 106 0s106 7 106 16v76c0 9-48 16-106 16S0 101 0 92Z" fill="#101615" stroke="#4d3c66" stroke-width="1.4"/>
+    <ellipse cx="106" cy="16" rx="106" ry="16" fill="#191420" stroke="#4d3c66" stroke-width="1.4"/>
+    <text x="106" y="53" text-anchor="middle" class="db-title">Keycloak DB</text>
+    <text x="106" y="76" text-anchor="middle" class="db-copy">PostgreSQL 16</text>
+  </g>
+  <path d="M1163 294V820H1300V864" class="data-line"/>
+
+  <!-- Observability -->
+  <g transform="translate(54 1032)">
+    <rect width="1492" height="80" rx="18" fill="#0e1413" stroke="#343f3b" stroke-width="1.3"/>
+    <rect width="5" height="80" rx="3" fill="#c49cff"/>
+    <text x="26" y="29" class="stereotype">&lt;&lt;OBSERVABILITY PLATFORM&gt;&gt;</text>
+    <text x="26" y="56" class="db-title">Grafana · Prometheus · Loki · Tempo · Alloy</text>
+    <text x="590" y="34" class="node-copy">Metrics · logs · distributed traces</text>
+    <text x="590" y="57" class="db-copy">Micrometer / OpenTelemetry / OTLP</text>
+    <rect x="1175" y="20" width="285" height="40" rx="10" fill="#c49cff" opacity="0.06" stroke="#c49cff" stroke-opacity="0.18"/>
+    <text x="1317" y="45" text-anchor="middle" class="edge-label">all containers → telemetry</text>
+  </g>
+  <path d="M793 310V1010H800V1032" class="data-line"/>
+  <path d="M418 972V1010H800" fill="none" stroke="#77857e" stroke-width="1.7" stroke-dasharray="5 5"/>
+  <path d="M592 972V1010" class="data-line"/>
+  <path d="M828 972V1010" class="data-line"/>
+  <path d="M1064 972V1010" class="data-line"/>
+  <path d="M1300 972V1010" class="data-line"/>
+</svg>

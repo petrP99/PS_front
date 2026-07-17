@@ -22,13 +22,14 @@ const navItems = [
   { to: '/cashback', icon: 'cashback', code: 'CB', label: 'Кешбэк' },
   { to: '/history', icon: 'history', code: 'HS', label: 'История' },
   { to: '/admin', icon: 'admin', code: 'AD', label: 'Админ' },
-  { icon: 'about', code: 'AB', label: 'О проекте', placeholder: true },
+  { to: '/about', icon: 'about', code: 'AB', label: 'О проекте' },
 ];
 
 export default function Layout({ children }) {
   const { user } = useAuth();
   const location = useLocation();
   const isHomePage = location.pathname === '/home';
+  const isAboutPage = location.pathname === '/about';
   const [accounts, setAccounts] = useState([]);
   const [rates, setRates] = useState(null);
   const [balanceCurrency, setBalanceCurrency] = useState('RUB');
@@ -118,19 +119,6 @@ export default function Layout({ children }) {
                 <span className="app-nav__code">{item.code}</span>
               </>
             );
-
-            if (item.placeholder) {
-              return (
-                <span
-                  key={item.label}
-                  className="app-nav__item app-nav__item--placeholder"
-                  title="Раздел появится позже"
-                  aria-disabled="true"
-                >
-                  {content}
-                </span>
-              );
-            }
 
             const isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
             return (
@@ -231,7 +219,7 @@ export default function Layout({ children }) {
       )}
 
       <main className={`app-main ${isHomePage ? 'app-main--home' : 'app-main--default'}`}>
-        <div className={`app-main__content ${isHomePage ? '' : 'app-main__content--themed'}`}>{children}</div>
+        <div className={`app-main__content ${isHomePage ? '' : 'app-main__content--themed'} ${isAboutPage ? 'app-main__content--wide' : ''}`}>{children}</div>
       </main>
     </div>
   );

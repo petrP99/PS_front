@@ -1,14 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getMyAccounts, createAccount } from '../api';
 import Toast from '../components/Toast';
 import { getCardCurrencyStyle } from '../utils/cardAppearance';
 import { getCardLastFour } from '../utils/cardFormat';
+import './FinanceCatalog.css';
+
+const HIDE_CLOSED_ACCOUNTS_KEY = 'payflow.accounts.hideClosed';
+
+const readStoredFlag = (key) => {
+  try {
+    return window.localStorage.getItem(key) === 'true';
+  } catch {
+    return false;
+  }
+};
 
 export default function MyAccountsPage() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newAccountData, setNewAccountData] = useState({ name: '', currency: 'RUB' });
+  const [hideClosedAccounts, setHideClosedAccounts] = useState(() => readStoredFlag(HIDE_CLOSED_ACCOUNTS_KEY));
   const [toast, setToast] = useState({ message: '', visible: false });
 
   useEffect(() => {
@@ -45,14 +57,53 @@ export default function MyAccountsPage() {
     }
   };
 
-  // Группируем счета по валюте
-  const accountsByCurrency = {};
-  accounts.forEach(account => {
-    if (!accountsByCurrency[account.currency]) {
-      accountsByCurrency[account.currency] = [];
+  const closedAccountsCount = useMemo(
+    () => accounts.filter(account => account.status === 'CLOSED').length,
+    [accounts]
+  );
+  const visibleAccounts = useMemo(
+    () => hideClosedAccounts ? accounts.filter(account => account.status !== 'CLOSED') : accounts,
+    [accounts, hideClosedAccounts]
+  );
+  const accountsByCurrency = useMemo(() => visibleAccounts.reduce((groups, account) => {
+    if (!groups[account.currency]) groups[account.currency] = [];
+    groups[account.currency].push(account);
+    return groups;
+  }, {}), [visibleAccounts]);
+
+  const toggleClosedAccounts = () => {
+    setHideClosedAccounts(currentValue => {
+      const nextValue = !currentValue;
+      try {
+        window.localStorage.setItem(HIDE_CLOSED_ACCOUNTS_KEY, String(nextValue));
+      } catch {
+        // Фильтр продолжит работать до перезагрузки, даже если storage недоступен.
+      }
+      return nextValue;
+    });
+  };
+
+  const renderEmptyState = () => {
+    if (accounts.length > 0 && hideClosedAccounts && visibleAccounts.length === 0) {
+      return (
+        <div className="glass finance-empty-state">
+          <p>Все закрытые счета скрыты</p>
+          <button type="button" className="finance-action finance-action--filter is-active" onClick={toggleClosedAccounts}>
+            Показать счета
+          </button>
+        </div>
+      );
     }
-    accountsByCurrency[account.currency].push(account);
-  });
+
+    return (
+      <div className="glass finance-empty-state">
+        <p>У вас пока нет счетов</p>
+        <button type="button" className="finance-action finance-action--primary" onClick={() => setShowCreateForm(true)}>
+          Создать первый счёт
+        </button>
+      </div>
+    );
+  };
 
   const currencyLabels = {
     RUB: { label: 'Рубли', sign: '₽' },
@@ -61,38 +112,48 @@ export default function MyAccountsPage() {
   };
 
   return (
-    <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="finance-catalog">
+      <div className="finance-catalog__header">
         <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>Мои счета</h1>
-        <button 
-          className="glass" 
-          style={{ padding: '0.7rem 1.5rem', background: 'rgba(140,242,155,0.14)', border: '1px solid rgba(140,242,155,0.4)', borderRadius: '12px', cursor: 'pointer', color: '#c9ffd4' }}
-          onClick={() => setShowCreateForm(true)}
-        >
-          Создать счёт
-        </button>
+        <div className="finance-catalog__header-actions">
+          <button
+            type="button"
+            className={`finance-action finance-action--filter${hideClosedAccounts ? ' is-active' : ''}`}
+            onClick={toggleClosedAccounts}
+            disabled={closedAccountsCount === 0}
+          >
+            {closedAccountsCount === 0
+              ? 'Нет закрытых счетов'
+              : hideClosedAccounts
+                ? `Показать закрытые (${closedAccountsCount})`
+                : `Скрыть закрытые (${closedAccountsCount})`}
+          </button>
+          <button type="button" className="finance-action finance-action--primary" onClick={() => setShowCreateForm(true)}>
+            + Создать счёт
+          </button>
+        </div>
       </div>
 
       {showCreateForm && (
-        <div className="glass" style={{ padding: '1.5rem', marginBottom: '2rem', borderRadius: '16px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem' }}>Создание нового счёта</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="glass finance-create-panel">
+          <h2>Создание нового счёта</h2>
+          <div className="finance-form-grid">
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Название счёта (необязательно)</label>
+              <label className="finance-field__label" htmlFor="account-name">Название счёта (необязательно)</label>
               <input
+                id="account-name"
                 type="text"
-                className="glass"
-                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff' }}
+                className="finance-control"
                 value={newAccountData.name}
                 onChange={e => setNewAccountData({ ...newAccountData, name: e.target.value })}
                 placeholder="Например, Накопительный"
               />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Валюта</label>
+              <label className="finance-field__label" htmlFor="account-currency">Валюта</label>
               <select
-                className="glass"
-                style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)' }}
+                id="account-currency"
+                className="finance-control"
                 value={newAccountData.currency}
                 onChange={e => setNewAccountData({ ...newAccountData, currency: e.target.value })}
               >
@@ -102,17 +163,15 @@ export default function MyAccountsPage() {
               </select>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="finance-catalog__form-actions">
             <button 
-              className="glass" 
-              style={{ padding: '0.7rem 1.5rem', background: 'rgba(140,242,155,0.18)', borderRadius: '10px', cursor: 'pointer', color: '#c9ffd4' }}
+              className="finance-action finance-action--primary"
               onClick={handleCreateAccount}
             >
               Создать
             </button>
             <button 
-              className="glass" 
-              style={{ padding: '0.7rem 1.5rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: 'pointer', color: '#fff' }}
+              className="finance-action finance-action--secondary"
               onClick={() => setShowCreateForm(false)}
             >
               Отмена
@@ -126,30 +185,28 @@ export default function MyAccountsPage() {
           <p>Загрузка счетов...</p>
         </div>
       ) : Object.keys(accountsByCurrency).length === 0 ? (
-        <div className="glass" style={{ padding: '2rem', textAlign: 'center', borderRadius: '16px' }}>
-          <p>У вас пока нет счетов</p>
-        </div>
+        renderEmptyState()
       ) : (
         Object.entries(accountsByCurrency).map(([currency, currencyAccounts]) => (
-          <div key={currency} className="glass" style={{ padding: '1.5rem', marginBottom: '2rem', borderRadius: '16px' }}>
+          <div key={currency} className="glass finance-group">
             <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem' }}>
               {currencyLabels[currency]?.label || currency} ({currency})
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(390px, 1fr))', gap: '1rem' }}>
+            <div className="finance-grid finance-grid--accounts">
               {currencyAccounts.map(account => {
                 const colorStyle = getCardCurrencyStyle(account.currency);
 
                 return (
                   <div
                     key={account.id}
+                    className={`finance-item-card${account.status === 'CLOSED' ? ' is-closed' : ''}`}
                     style={{
-                      padding: '1.5rem',
-                      borderRadius: '16px',
-                      cursor: 'pointer',
+                      '--finance-accent': colorStyle.accent,
+                      '--finance-accent-soft': colorStyle.accentSoft,
+                      '--finance-accent-border': colorStyle.accentBorder,
                       background: colorStyle.background,
                       border: colorStyle.border,
                       boxShadow: colorStyle.boxShadow,
-                      backdropFilter: 'blur(20px)',
                     }}
                     onClick={() => window.location.href = `/accounts/${account.id}`}
                   >
@@ -157,7 +214,7 @@ export default function MyAccountsPage() {
                       <div style={{ fontSize: '1.1rem', fontWeight: 500 }}>
                         {account.name || `Счёт ${account.id.toString().slice(-4)}`}
                       </div>
-                      <span style={{ color: colorStyle.accent, fontSize: '0.8rem', fontWeight: 600 }}>
+                      <span className={`finance-status${account.status === 'CLOSED' ? ' finance-status--closed' : ''}`}>
                         {account.status === 'CLOSED' ? 'ЗАКРЫТ' : account.currency}
                       </span>
                     </div>
@@ -171,37 +228,17 @@ export default function MyAccountsPage() {
                             <button
                               key={card.id}
                               type="button"
+                              className="finance-mini-card"
                               title={`Открыть карту •••• ${getCardLastFour(card.cardNumber)}`}
                               onClick={event => {
                                 event.stopPropagation();
                                 window.location.href = `/cards/${card.id}`;
                               }}
-                              style={{
-                                minWidth: 0,
-                                padding: '0.5rem 0.6rem',
-                                border: `1px solid ${colorStyle.accent}55`,
-                                borderRadius: '9px',
-                                background: 'rgba(10,10,15,0.3)',
-                                color: '#fff',
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                              }}
                             >
-                              <span
-                                style={{
-                                  display: 'block',
-                                  marginBottom: '0.25rem',
-                                  overflow: 'hidden',
-                                  color: colorStyle.accent,
-                                  fontSize: '0.68rem',
-                                  fontWeight: 600,
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
+                              <span className="finance-mini-card__name">
                                 {card.name || 'Карта'}
                               </span>
-                              <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              <span className="finance-mini-card__number">
                                 •••• {getCardLastFour(card.cardNumber)}
                               </span>
                             </button>
@@ -231,19 +268,10 @@ export default function MyAccountsPage() {
                       </div>
                       <button
                         type="button"
+                        className="finance-inline-link"
                         onClick={event => {
                           event.stopPropagation();
                           window.location.href = `/accounts/${account.id}/requisites`;
-                        }}
-                        style={{
-                          padding: '0.4rem 0.75rem',
-                          border: `1px solid ${colorStyle.accent}66`,
-                          borderRadius: '8px',
-                          background: 'rgba(10,10,15,0.3)',
-                          color: colorStyle.accent,
-                          cursor: 'pointer',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
                         }}
                       >
                         Реквизиты
