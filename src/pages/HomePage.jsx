@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   getCashbackAccruals,
@@ -196,7 +196,11 @@ export default function HomePage() {
     [cashbackAccruals, rates]
   );
 
-  const firstName = user?.firstName || user?.given_name || user?.preferred_username || 'друг';
+  const givenName = user?.firstName || user?.given_name;
+  const familyName = user?.lastName || user?.family_name;
+  const displayName = [givenName, familyName].filter(Boolean).join(' ')
+    || user?.preferred_username
+    || 'друг';
   const switchBalanceCurrency = () => {
     setBalanceCurrency(currentCurrency => {
       const currentIndex = currencies.indexOf(currentCurrency);
@@ -212,12 +216,7 @@ export default function HomePage() {
 
       <section className="home-terminal__intro">
         <div>
-          <div className="home-terminal__breadcrumb">
-            <span>PF / OVERVIEW</span>
-            <span className="home-terminal__breadcrumb-line" />
-            <span>{getGreeting()}</span>
-          </div>
-          <h1>{firstName}, всё под контролем.</h1>
+          <h1><Link className="home-terminal__client-name" to="/profile">{displayName}</Link>, всё под контролем.</h1>
           <p>Счета, карты и денежные потоки — в одном финансовом пространстве.</p>
         </div>
 
@@ -279,7 +278,7 @@ export default function HomePage() {
                 {dashboardLoading ? (
                   <span className="home-terminal__accounts-square-loading">Загрузка...</span>
                 ) : accountOverview.accounts.length > 0 ? (
-                  accountOverview.accounts.slice(0, 3).map(account => {
+                  accountOverview.accounts.slice(0, 4).map(account => {
                     const meta = getCurrencyMeta(account.currency);
                     return (
                       <span className="home-terminal__accounts-square-row" key={account.id}>
@@ -703,14 +702,6 @@ function formatCurrentDate() {
     month: 'long',
   }).format(new Date());
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-}
-
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 6) return 'НОЧНАЯ СЕССИЯ';
-  if (hour < 12) return 'ДОБРОЕ УТРО';
-  if (hour < 18) return 'ДОБРЫЙ ДЕНЬ';
-  return 'ДОБРЫЙ ВЕЧЕР';
 }
 
 function pluralize(value, one, few, many) {

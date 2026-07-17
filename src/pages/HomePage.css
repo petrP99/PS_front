@@ -1885,6 +1885,240 @@
   }
 }
 
+/* Readability pass */
+.home-terminal__client-name {
+  color: #b9f7c2;
+  text-shadow: 0 0 28px rgba(140, 242, 155, 0.12);
+}
+
+.home-terminal__today span {
+  font-size: 0.64rem;
+}
+
+.home-terminal__today strong {
+  font-size: 0.84rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-header strong,
+.home-terminal__cashback-desk .home-terminal__panel-header h2,
+.home-terminal__quick-rail .home-terminal__panel-header h2,
+.home-terminal__history-feed .home-terminal__panel-header h2 {
+  font-size: 1.3rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-header small,
+.home-terminal__cashback-desk .home-terminal__label,
+.home-terminal__quick-rail .home-terminal__label,
+.home-terminal__history-feed .home-terminal__label {
+  font-size: 0.74rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-list {
+  align-content: stretch;
+  gap: 0.55rem;
+  padding: 0.85rem 0;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row {
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  min-height: 58px;
+  gap: 0.65rem;
+  padding: 0.72rem 0.75rem;
+  border: 1px solid rgba(109, 214, 255, 0.1);
+  border-radius: 11px;
+  background: rgba(109, 214, 255, 0.025);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row i {
+  width: 7px;
+  height: 7px;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row > span {
+  color: #c1c9c5;
+  font-size: 0.84rem;
+  font-weight: 570;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row strong {
+  font-size: 0.78rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-footer {
+  font-size: 0.7rem;
+}
+
+.home-terminal__cashback-period {
+  font-size: 0.9rem;
+}
+
+.home-terminal__cashback-period b {
+  font-size: 0.84rem;
+}
+
+.home-terminal__cashback-categories-label {
+  font-size: 0.7rem;
+}
+
+.home-terminal__cashback-category {
+  padding: 0.62rem;
+}
+
+.home-terminal__cashback-category strong {
+  font-size: 0.9rem;
+}
+
+.home-terminal__cashback-category small {
+  font-size: 0.72rem;
+}
+
+.home-terminal__cashback-footer {
+  font-size: 0.78rem;
+}
+
+.home-terminal__action-grid--rail .home-terminal__action-copy small {
+  font-size: 0.62rem;
+}
+
+.home-terminal__action-grid--rail .home-terminal__action-copy strong {
+  font-size: 0.98rem;
+}
+
+.home-terminal__action-grid--rail .home-terminal__action-copy > span {
+  font-size: 0.74rem;
+}
+
+.home-terminal__history-feed-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.home-terminal__history-feed-row {
+  flex: 1 1 0;
+  min-height: 0;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+.home-terminal__history-feed-copy strong {
+  font-size: 0.98rem;
+}
+
+.home-terminal__history-feed-copy small {
+  font-size: 0.78rem;
+}
+
+.home-terminal__history-feed-amount strong {
+  font-size: 0.9rem;
+}
+
+.home-terminal__history-feed-amount small {
+  font-size: 0.66rem;
+}
+
+.home-terminal__text-button {
+  font-size: 0.76rem;
+}
+
+.home-terminal__history-feed-state,
+.home-terminal__history-skeleton {
+  flex: 1;
+}
+
+.home-terminal__history-skeleton {
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+
+.home-terminal__history-skeleton span {
+  height: auto;
+}
+
+@media (max-width: 620px) {
+  .home-terminal__history-feed-copy strong {
+    font-size: 0.88rem;
+  }
+
+  .home-terminal__history-feed-copy small {
+    font-size: 0.7rem;
+  }
+
+  .home-terminal__history-feed-amount strong {
+    font-size: 0.8rem;
+  }
+}
+
+/* Account cells match the fixed row height used by the operation history. */
+.home-terminal__accounts-panel .home-terminal__accounts-square-list {
+  align-content: center;
+  grid-auto-rows: 67px;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row {
+  box-sizing: border-box;
+  height: 67px;
+  min-height: 67px;
+  max-height: 67px;
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row > span {
+  font-size: 0.88rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row strong {
+  font-size: 0.82rem;
+}
+
+.home-terminal__client-name {
+  color: #b9f7c2;
+  text-decoration: none;
+  text-underline-offset: 0.18em;
+  transition: color 180ms ease, text-shadow 180ms ease;
+}
+
+.home-terminal__client-name:hover,
+.home-terminal__client-name:focus-visible {
+  color: #d4ffda;
+  text-decoration: underline;
+  text-decoration-color: rgba(140, 242, 155, 0.55);
+  text-shadow: 0 0 24px rgba(140, 242, 155, 0.24);
+}
+
+.home-terminal button.home-terminal__balance {
+  color: #8cf29b;
+  background: linear-gradient(105deg, #5ee58f 0%, #b9ffc5 28%, #73e8b2 52%, #d8ffd8 72%, #68e596 100%);
+  background-size: 240% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(94, 229, 143, 0.14));
+  animation: home-balance-shimmer 4.2s ease-in-out infinite;
+}
+
+.home-terminal button.home-terminal__balance:hover:not(:disabled) {
+  filter: drop-shadow(0 0 17px rgba(140, 242, 155, 0.24));
+}
+
+@keyframes home-balance-shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-terminal button.home-terminal__balance {
+    animation: none;
+  }
+}
+
 @keyframes homeTerminalEnter {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -2122,7 +2356,7 @@
   width: auto;
   min-width: 0;
   min-height: 385px;
-  padding: 1.35rem;
+  padding: 1rem 1.35rem;
   overflow: hidden;
   border: 1px solid var(--home-border);
   border-radius: 18px;
@@ -2151,8 +2385,8 @@
 }
 
 .home-terminal__accounts-panel .home-terminal__accounts-square-list {
-  gap: 0.72rem;
-  padding: 1rem 0;
+  gap: 0.2rem;
+  padding: 0.25rem 0;
 }
 
 .home-terminal__accounts-panel .home-terminal__accounts-square-row {
@@ -2258,7 +2492,7 @@
   grid-template-columns: 36px minmax(0, 1fr) 24px;
   min-height: 0;
   gap: 0.65rem;
-  padding: 0.5rem 0.72rem;
+  padding: 0.38rem 0.72rem;
   border-radius: 11px;
 }
 
@@ -2347,5 +2581,104 @@
 
   .home-terminal__history-feed-copy small {
     font-size: 0.61rem;
+  }
+}
+
+/* Final readable type scale */
+.home-terminal__accounts-panel .home-terminal__accounts-square-header strong,
+.home-terminal__cashback-desk .home-terminal__panel-header h2,
+.home-terminal__quick-rail .home-terminal__panel-header h2,
+.home-terminal__history-feed .home-terminal__panel-header h2 {
+  font-size: 1.3rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-header small,
+.home-terminal__cashback-desk .home-terminal__label,
+.home-terminal__quick-rail .home-terminal__label,
+.home-terminal__history-feed .home-terminal__label {
+  font-size: 0.74rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row > span {
+  color: #c1c9c5;
+  font-size: 0.84rem;
+  font-weight: 570;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-row strong {
+  font-size: 0.78rem;
+}
+
+.home-terminal__accounts-panel .home-terminal__accounts-square-footer {
+  font-size: 0.7rem;
+}
+
+.home-terminal__cashback-period {
+  font-size: 0.9rem;
+}
+
+.home-terminal__cashback-period b {
+  font-size: 0.84rem;
+}
+
+.home-terminal__cashback-categories-label {
+  font-size: 0.7rem;
+}
+
+.home-terminal__cashback-category strong {
+  font-size: 0.9rem;
+}
+
+.home-terminal__cashback-category small {
+  font-size: 0.72rem;
+}
+
+.home-terminal__cashback-footer {
+  font-size: 0.78rem;
+}
+
+.home-terminal__action-grid--rail .home-terminal__action-copy small {
+  font-size: 0.62rem;
+}
+
+.home-terminal__action-grid--rail .home-terminal__action-copy strong {
+  font-size: 0.98rem;
+}
+
+.home-terminal__action-grid--rail .home-terminal__action-copy > span {
+  font-size: 0.74rem;
+}
+
+.home-terminal__history-feed-copy strong {
+  font-size: 0.98rem;
+}
+
+.home-terminal__history-feed-copy small {
+  font-size: 0.78rem;
+}
+
+.home-terminal__history-feed-amount strong {
+  font-size: 0.9rem;
+}
+
+.home-terminal__history-feed-amount small {
+  font-size: 0.66rem;
+}
+
+.home-terminal__text-button {
+  font-size: 0.76rem;
+}
+
+@media (max-width: 620px) {
+  .home-terminal__history-feed-copy strong {
+    font-size: 0.88rem;
+  }
+
+  .home-terminal__history-feed-copy small {
+    font-size: 0.7rem;
+  }
+
+  .home-terminal__history-feed-amount strong {
+    font-size: 0.8rem;
   }
 }

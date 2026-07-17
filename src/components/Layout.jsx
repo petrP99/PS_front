@@ -22,6 +22,7 @@ const navItems = [
   { to: '/cashback', icon: 'cashback', code: 'CB', label: 'Кешбэк' },
   { to: '/history', icon: 'history', code: 'HS', label: 'История' },
   { to: '/admin', icon: 'admin', code: 'AD', label: 'Админ' },
+  { icon: 'about', code: 'AB', label: 'О проекте', placeholder: true },
 ];
 
 export default function Layout({ children }) {
@@ -110,6 +111,27 @@ export default function Layout({ children }) {
         <span className="app-sidebar__label">НАВИГАЦИЯ</span>
         <nav className="app-nav">
           {navItems.map(item => {
+            const content = (
+              <>
+                <span className="app-nav__icon"><LayoutIcon name={item.icon} /></span>
+                <span className="app-nav__label">{item.label}</span>
+                <span className="app-nav__code">{item.code}</span>
+              </>
+            );
+
+            if (item.placeholder) {
+              return (
+                <span
+                  key={item.label}
+                  className="app-nav__item app-nav__item--placeholder"
+                  title="Раздел появится позже"
+                  aria-disabled="true"
+                >
+                  {content}
+                </span>
+              );
+            }
+
             const isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
             return (
               <Link
@@ -119,9 +141,7 @@ export default function Layout({ children }) {
                 className={`app-nav__item ${isActive ? 'is-active' : ''}`}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <span className="app-nav__icon"><LayoutIcon name={item.icon} /></span>
-                <span className="app-nav__label">{item.label}</span>
-                <span className="app-nav__code">{item.code}</span>
+                {content}
               </Link>
             );
           })}
@@ -272,6 +292,7 @@ function LayoutIcon({ name }) {
     cashback: <><path d="m12 3-1.7 4.3L6 9l4.3 1.7L12 15l1.7-4.3L18 9l-4.3-1.7Z" /><path d="m5 16-.8 2.2L2 19l2.2.8L5 22l.8-2.2L8 19l-2.2-.8Z" /></>,
     history: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></>,
     admin: <><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h7M15 18h5" /><circle cx="16" cy="6" r="2" /><circle cx="8" cy="12" r="2" /><circle cx="13" cy="18" r="2" /></>,
+    about: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><path d="M12 8h.01" /></>,
   };
 
   return (
